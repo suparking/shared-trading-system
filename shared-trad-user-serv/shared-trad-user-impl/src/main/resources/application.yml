@@ -241,3 +241,7 @@ feign:
         readTimeout: 2000
   circuitbreaker:
     enabled: true
+
+wx:
+  appid: wx30b06cff779215bb
+  secret: 919be359c7f692d66bde05ad6c34a95d
