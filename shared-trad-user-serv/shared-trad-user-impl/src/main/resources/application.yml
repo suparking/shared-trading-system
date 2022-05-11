@@ -1,5 +1,5 @@
 server:
-  port: 20000
+  port: 20005
   # 返回给页面的结果里,把错误信息添加到message里
   error:
     include-message: always
@@ -24,7 +24,7 @@ spring:
 #      write-ds:
 #        type: com.zaxxer.hikari.HikariDataSource
 #        driver-class-name: com.mysql.cj.jdbc.Driver
-#        jdbc-url: jdbc:mysql://center.suparking.cn:21305/spk_user?autoReconnect=true&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC
+#        jdbc-url: jdbc:mysql://center.suparking.cn:21305/tbl_user?autoReconnect=true&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC
 #        username: SPKRoot
 #        password: SPKRoot2017!
 #        max-active: 16
@@ -39,7 +39,7 @@ spring:
 #      write-ds-read-ds-0:
 #        type: com.zaxxer.hikari.HikariDataSource
 #        driver-class-name: com.mysql.cj.jdbc.Driver
-#        jdbc-url: jdbc:mysql://center.suparking.cn:21306/spk_user?autoReconnect=true&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC
+#        jdbc-url: jdbc:mysql://center.suparking.cn:21306/tbl_user?autoReconnect=true&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC
 #        username: SPKRoot
 #        password: SPKRoot2017!
 #        max-active: 16
@@ -54,7 +54,7 @@ spring:
 #      write-ds-read-ds-1:
 #        type: com.zaxxer.hikari.HikariDataSource
 #        driver-class-name: com.mysql.cj.jdbc.Driver
-#        jdbc-url: jdbc:mysql://center.suparking.cn:21306/spk_user?autoReconnect=true&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC
+#        jdbc-url: jdbc:mysql://center.suparking.cn:21306/tbl_user?autoReconnect=true&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC
 #        username: SPKRoot
 #        password: SPKRoot2017!
 #        max-active: 16
