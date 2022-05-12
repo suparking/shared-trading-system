@@ -1,9 +1,9 @@
 package cn.suparking.customer.controller.user.service;
 
 
-import cn.suparking.common.api.beans.SpkCommonResult;
 import cn.suparking.user.api.beans.SessionKeyDTO;
+import cn.suparking.user.api.vo.UserVO;
 
 public interface UserOperateService {
-    SpkCommonResult getSessionKey(SessionKeyDTO sessionKeyDTO);
+    UserVO getSessionKey(SessionKeyDTO sessionKeyDTO);
 }

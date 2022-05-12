@@ -1,22 +1,34 @@
 package cn.suparking.user.api.vo;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SessionKeyVO {
-    //用户唯一标识
+public class SessionKeyVO implements Serializable {
+
+    private static final long serialVersionUID = -4952795851464885155L;
+
+    /**
+     * 用户唯一标识.
+     */
     @NotNull
     private String openid;
 
-    //会话密钥
+    /**
+     * 会话密钥.
+     */
     private String sessionKey;
 
-    //会话有效期, 以秒为单位, 例如2592000代表会话有效期为30天
-    private String expiresIn;
+    /**
+     * 用户在开放平台的唯一标识符.
+     */
+    private String unionid;
 }
