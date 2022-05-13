@@ -19,7 +19,7 @@ import java.util.Optional;
 @Slf4j
 @RefreshScope
 @RestController
-@RequestMapping("user-model")
+@RequestMapping("user-api")
 public class UserOperateController {
 
     @Autowired
