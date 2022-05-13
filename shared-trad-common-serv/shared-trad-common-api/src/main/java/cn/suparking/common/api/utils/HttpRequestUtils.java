@@ -43,7 +43,8 @@ public class HttpRequestUtils {
             log.info("[GET]请求外部api ======> 请求结果 [{}]", body);
             return JSON.parseObject(body);
         } catch (Exception e) {
-            throw new SpkCommonException("请求外部api ======> 请求异常 [" + e.getMessage() + "]");
+            log.error("请求外部api ======> 请求异常 [{}]", ExceptionMsgUtils.exceptionMsg(e));
+            throw new SpkCommonException("请求失败");
         }
     }
 
@@ -75,7 +76,8 @@ public class HttpRequestUtils {
             log.info("[POST]请求外部api ======> 请求结果 [{}]", body);
             return JSON.parseObject(body);
         } catch (Exception e) {
-            throw new SpkCommonException("请求外部api ======> 请求异常 [" + e.getMessage() + "]");
+            log.error("请求外部api ======> 请求异常 [{}]", ExceptionMsgUtils.exceptionMsg(e));
+            throw new SpkCommonException("请求失败");
         }
     }
 
