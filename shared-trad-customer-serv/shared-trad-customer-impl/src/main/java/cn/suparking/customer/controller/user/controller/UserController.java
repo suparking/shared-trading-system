@@ -6,7 +6,6 @@ import cn.suparking.customer.controller.user.service.UserOperateService;
 import cn.suparking.user.api.beans.SessionKeyDTO;
 import cn.suparking.user.api.vo.UserVO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,10 +19,13 @@ import java.util.Optional;
 @RefreshScope
 @RestController
 @RequestMapping("user-api")
-public class UserOperateController {
+public class UserController {
 
-    @Autowired
-    private UserOperateService userOperateService;
+    private final UserOperateService userOperateService;
+
+    public UserController(final UserOperateService userOperateService) {
+        this.userOperateService = userOperateService;
+    }
 
     /**
      * 通过code获取session_key.
@@ -40,4 +42,5 @@ public class UserOperateController {
                     return SpkCommonResult.success(userVO);
                 }).orElseGet(() -> SpkCommonResult.error("code不能为空"));
     }
+
 }

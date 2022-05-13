@@ -30,5 +30,5 @@ public class SessionKeyVO implements Serializable {
     /**
      * 用户在开放平台的唯一标识符.
      */
-    private String unionid;
+    private String unionId;
 }

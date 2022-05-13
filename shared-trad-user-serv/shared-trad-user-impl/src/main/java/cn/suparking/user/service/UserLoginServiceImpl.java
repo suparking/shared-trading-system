@@ -49,7 +49,7 @@ public class UserLoginServiceImpl implements UserLoginService {
         SessionKeyVO sessionKeyVO = SessionKeyVO.builder()
                 .openid(result.getString("openid"))
                 .sessionKey(result.getString("session_key"))
-                .unionid(result.getString("unionid"))
+                .union(result.getString("unionid"))
                 .build();
         return sessionKeyVO;
     }
