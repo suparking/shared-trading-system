@@ -2,9 +2,10 @@ package cn.suparking.customer.controller.user.controller;
 
 import cn.suparking.common.api.beans.SpkCommonResult;
 import cn.suparking.common.api.utils.SpkCommonAssert;
-import cn.suparking.customer.controller.user.service.UserOperateService;
-import cn.suparking.user.api.beans.SessionKeyDTO;
-import cn.suparking.user.api.vo.UserVO;
+import cn.suparking.common.api.utils.SpkCommonResultMessage;
+import cn.suparking.customer.controller.user.service.UserService;
+import cn.suparking.user.api.beans.MiniLoginDTO;
+import cn.suparking.user.api.beans.MiniRegisterDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,26 +22,42 @@ import java.util.Optional;
 @RequestMapping("user-api")
 public class UserController {
 
-    private final UserOperateService userOperateService;
+    private final UserService userService;
 
-    public UserController(final UserOperateService userOperateService) {
-        this.userOperateService = userOperateService;
+    public UserController(final UserService userService) {
+        this.userService = userService;
     }
 
     /**
      * 通过code获取session_key.
      *
-     * @param sessionKeyDTO {@linkplain SessionKeyDTO}
+     * @param miniRegisterDTO {@linkplain MiniRegisterDTO}
      * @return {@linkplain SpkCommonResult}
      */
-    @PostMapping("login")
-    public SpkCommonResult getSessionKey(@Valid @RequestBody final SessionKeyDTO sessionKeyDTO) {
-        return Optional.ofNullable(sessionKeyDTO)
+    @PostMapping("register")
+    public SpkCommonResult getSessionKey(@Valid @RequestBody final MiniRegisterDTO miniRegisterDTO) {
+        return Optional.ofNullable(miniRegisterDTO)
                 .map(item -> {
-                    SpkCommonAssert.notBlank(sessionKeyDTO.getCode(), "code不能为空");
-                    UserVO userVO = userOperateService.getSessionKey(sessionKeyDTO);
-                    return SpkCommonResult.success(userVO);
+                    SpkCommonAssert.notBlank(miniRegisterDTO.getCode(), SpkCommonResultMessage.PARAMETER_ERROR + "code 不能为空");
+                    SpkCommonAssert.notBlank(miniRegisterDTO.getEncryptedData(), SpkCommonResultMessage.PARAMETER_ERROR + "encryptedData 不能为空");
+                    SpkCommonAssert.notBlank(miniRegisterDTO.getIv(), SpkCommonResultMessage.PARAMETER_ERROR + "iv 不能为空");
+                    return SpkCommonResult.success(userService.register(miniRegisterDTO));
                 }).orElseGet(() -> SpkCommonResult.error("code不能为空"));
+    }
+
+    /**
+     * 通过微信login 登录.
+     * @param miniLoginDTO {@link MiniLoginDTO}
+     * @return {@link SpkCommonResult}
+     */
+    @PostMapping("login")
+    public SpkCommonResult login(@Valid @RequestBody final MiniLoginDTO miniLoginDTO) {
+        return Optional.ofNullable(miniLoginDTO)
+               .map(item -> {
+                   SpkCommonAssert.notBlank(miniLoginDTO.getCode(), SpkCommonResultMessage.PARAMETER_ERROR + "code不能为空");
+                   return SpkCommonResult.success(userService.login(miniLoginDTO.getCode()));
+               }).orElseGet(() -> SpkCommonResult.error(SpkCommonResultMessage.PARAMETER_ERROR));
+
     }
 
 }

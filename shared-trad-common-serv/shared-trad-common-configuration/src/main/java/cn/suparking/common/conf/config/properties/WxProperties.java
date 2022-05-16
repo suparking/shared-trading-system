@@ -1,4 +1,4 @@
-package cn.suparking.user.configuration;
+package cn.suparking.common.conf.config.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-@ConfigurationProperties(prefix = "wx")
+@ConfigurationProperties(prefix = "sparking.wx")
 public class WxProperties {
 
     private String appid;

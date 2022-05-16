@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SessionKeyVO implements Serializable {
+public class RegisterVO implements Serializable {
 
     private static final long serialVersionUID = -4952795851464885155L;
 

@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -45,6 +46,12 @@ public final class UserDO extends BaseDO {
      */
     private String nickName;
 
+    private String openId;
+
+    private String miniOpenId;
+
+    private String unionId;
+
     /**
      * 用户状态 1:激活 2:未激活.
      */
@@ -78,6 +85,9 @@ public final class UserDO extends BaseDO {
                     .build();
             if (Objects.nonNull(item.getMerchantId())) {
                 userDO.setMerchantId(Long.valueOf(item.getMerchantId()));
+            }
+            if (StringUtils.isNotBlank(item.getOpenId())) {
+               userDO.setOpenId(item.getOpenId());
             }
             if (Objects.isNull(item.getId())) {
                 userDO.setId(SnowflakeConfig.snowflakeId());
