@@ -2,13 +2,13 @@ package cn.suparking.user.service;
 
 import cn.suparking.common.api.exception.SpkCommonException;
 import cn.suparking.common.api.utils.HttpRequestUtils;
-import cn.suparking.common.conf.config.properties.WxProperties;
-import cn.suparking.common.tools.middles.ReactiveRedisUtils;
 import cn.suparking.user.api.vo.PhoneInfoVO;
 import cn.suparking.user.api.vo.RegisterVO;
 import cn.suparking.user.api.vo.SessionVO;
+import cn.suparking.user.configuration.properties.WxProperties;
 import cn.suparking.user.constant.UserConstant;
 import cn.suparking.user.service.intf.UserLoginService;
+import cn.suparking.user.tools.ReactiveRedisUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
@@ -102,15 +102,16 @@ public class UserLoginServiceImpl implements UserLoginService {
                 if (item.getInteger("errcode") != 0) {
                     throw new SpkCommonException("getPhoneInfo 错误 ======> 请求失败 [" + item.toJSONString() + "]");
                 }
-                JSONObject waterMark = item.getJSONObject("watermark");
+                JSONObject phoneInfo = item.getJSONObject("phone_info");
+                JSONObject waterMark = phoneInfo.getJSONObject("watermark");
                 PhoneInfoVO.WaterMarkVO waterMarkVO = PhoneInfoVO.WaterMarkVO.builder()
                         .appid(waterMark.getString("appid"))
                         .timestamp(waterMark.getLong("timestamp"))
                         .build();
                 return PhoneInfoVO.builder()
-                        .phoneNumber(item.getString("phoneNumber"))
-                        .purePhoneNumber(item.getString("purePhoneNumber"))
-                        .countryCode(item.getString("countryCode"))
+                        .phoneNumber(phoneInfo.getString("phoneNumber"))
+                        .purePhoneNumber(phoneInfo.getString("purePhoneNumber"))
+                        .countryCode(phoneInfo.getString("countryCode"))
                         .waterMark(waterMarkVO)
                         .build();
             }).orElse(null);

@@ -39,8 +39,6 @@ public class UserController {
         return Optional.ofNullable(miniRegisterDTO)
                 .map(item -> {
                     SpkCommonAssert.notBlank(miniRegisterDTO.getCode(), SpkCommonResultMessage.PARAMETER_ERROR + "code 不能为空");
-                    SpkCommonAssert.notBlank(miniRegisterDTO.getEncryptedData(), SpkCommonResultMessage.PARAMETER_ERROR + "encryptedData 不能为空");
-                    SpkCommonAssert.notBlank(miniRegisterDTO.getIv(), SpkCommonResultMessage.PARAMETER_ERROR + "iv 不能为空");
                     return SpkCommonResult.success(userService.register(miniRegisterDTO));
                 }).orElseGet(() -> SpkCommonResult.error("code不能为空"));
     }

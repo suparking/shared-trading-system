@@ -1,5 +1,6 @@
 package cn.suparking.customer.feign.user;
 
+import cn.suparking.customer.feign.user.fallback.UserTemplateFallbackFactory;
 import cn.suparking.user.api.beans.UserDTO;
 import cn.suparking.user.api.vo.PhoneInfoVO;
 import cn.suparking.user.api.vo.RegisterVO;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(value = "shared-trad-user-serv", path = "/user-center")
+@FeignClient(value = "shared-trad-user-serv", path = "/user-center", fallbackFactory = UserTemplateFallbackFactory.class)
 public interface UserTemplateService {
 
     /**

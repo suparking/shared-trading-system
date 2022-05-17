@@ -86,9 +86,19 @@ public final class UserDO extends BaseDO {
             if (Objects.nonNull(item.getMerchantId())) {
                 userDO.setMerchantId(Long.valueOf(item.getMerchantId()));
             }
-            if (StringUtils.isNotBlank(item.getOpenId())) {
-               userDO.setOpenId(item.getOpenId());
+
+            if (StringUtils.isNotBlank(item.getMiniOpenId())) {
+                userDO.setMiniOpenId(item.getMiniOpenId());
             }
+
+            if (StringUtils.isNotBlank(item.getUnionId())) {
+                userDO.setUnionId(item.getUnionId());
+            }
+
+            if (StringUtils.isNotBlank(item.getOpenId())) {
+                userDO.setOpenId(item.getOpenId());
+            }
+
             if (Objects.isNull(item.getId())) {
                 userDO.setId(SnowflakeConfig.snowflakeId());
                 userDO.setEnabled(UserStatus.ACTIVE.getCode());

@@ -24,15 +24,4 @@ public class MiniRegisterDTO implements Serializable {
 
     @NotNull
     private String phoneCode;
-
-    /**
-     * 用户信息的加密数据.
-     */
-    @NotNull
-    private String encryptedData;
-
-    /**
-     * 对称解密算法初始向量.
-     */
-    private String iv;
 }

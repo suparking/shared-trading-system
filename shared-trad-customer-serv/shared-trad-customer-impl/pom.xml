@@ -23,6 +23,11 @@
             <artifactId>shared-trad-user-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>shared-trad-common-tools</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--        Nacos 服务发现-->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
