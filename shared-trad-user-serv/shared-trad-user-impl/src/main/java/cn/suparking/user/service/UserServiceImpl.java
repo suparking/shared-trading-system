@@ -30,7 +30,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public int createOrUpdate(final UserDTO userDTO) {
         UserDO userDO = UserDO.buildUserDO(userDTO);
         // create new user

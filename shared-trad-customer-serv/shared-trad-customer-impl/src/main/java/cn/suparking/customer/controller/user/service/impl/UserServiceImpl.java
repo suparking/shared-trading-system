@@ -42,7 +42,6 @@ public class UserServiceImpl implements UserService {
      * @return {@linkplain SpkCommonResult}
      */
     @Override
-    @Transactional
     public UserVO register(final MiniRegisterDTO miniRegisterDTO) {
         //1.根据code获取openId和sessionKey
         SessionVO sessionVO = userTemplateService.getSessionKey(miniRegisterDTO.getCode());
