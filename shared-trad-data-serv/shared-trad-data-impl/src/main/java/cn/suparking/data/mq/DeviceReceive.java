@@ -1,24 +1,24 @@
 package cn.suparking.data.mq;
 
-import cn.suparking.common.api.utils.HttpUtils;
+import cn.suparking.common.api.beans.SpkCommonResult;
+import cn.suparking.common.api.utils.DateUtils;
 import cn.suparking.data.Application;
 import cn.suparking.data.api.beans.ParkStatusModel;
 import cn.suparking.data.api.beans.ParkingLockModel;
 import cn.suparking.data.api.beans.PublishData;
-import cn.suparking.data.api.constant.DataConstant;
 import cn.suparking.data.configuration.properties.MQConfigProperties;
-import cn.suparking.data.configuration.properties.SparkProperties;
 import cn.suparking.data.mq.messageTemplate.DeviceMessageThread;
 import cn.suparking.data.mq.messageTemplate.GroupInfoObj;
 import cn.suparking.data.mq.messageTemplate.GroupInfoService;
 import cn.suparking.data.mq.messageTemplate.MessageObj;
 import cn.suparking.data.mq.messageTemplate.MessageTemplate;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -30,14 +30,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static cn.suparking.data.api.constant.DataConstant.CTP_REQUEST_PARK_STATUS_ACK;
 import static cn.suparking.data.api.constant.DataConstant.CTP_TYPE;
+import static cn.suparking.data.api.constant.DataConstant.DATA_SAVE;
 
 @Slf4j
 @Component("DeviceReceive")
 public class DeviceReceive implements MessageListener {
 
-    @Resource
-    private SparkProperties sparkProperties;
+    private static final RabbitTemplate RABBIT_TEMPLATE = Application.getBean("MQCloudTemplate", RabbitTemplate.class);
 
     @Resource
     private MQConfigProperties mqConfigProperties;
@@ -55,11 +56,11 @@ public class DeviceReceive implements MessageListener {
             String lockCode = "";
             ParkStatusModel parkStatusModel = null;
             if (CTP_TYPE.equals(from) && topic.contains("device.status")) {
-                if (Objects.nonNull(publishData)) {
+                if (Objects.nonNull(publishData) && publishData.getType().equals(DATA_SAVE)) {
                     parkStatusModel = JSON.parseObject(publishData.getData(), ParkStatusModel.class);
                     lockCode = parkStatusModel.getLockCode();
                 } else {
-                    log.warn("Device Receive CTP MQ Data Error: " + body);
+                    log.warn("Device Receive CTP MQ Data Error Or Device Event Data: " + body);
                 }
             } else {
                 log.error(from + " 设备暂不支持, topic " + topic);
@@ -67,7 +68,7 @@ public class DeviceReceive implements MessageListener {
 
             if (StringUtils.isNotBlank(lockCode)) {
                 // 地锁编号不为空,并且可以在缓存中查询到此地锁,并且可以查到对应厂库编号
-                ParkingLockModel parkingLockModel = getParkInfoByDeviceNo(lockCode);
+                ParkingLockModel parkingLockModel = deviceMessageThread.getParkInfoByDeviceNo(lockCode);
                 if (Objects.nonNull(parkingLockModel) && StringUtils.isNotBlank(parkingLockModel.getProjectNo())) {
                     parkingLockModel.setParkId(parkingLockModel.getId());
                     MessageObj messageObj = GroupInfoService.findGroupInfoObj(parkingLockModel.getProjectNo(), mqConfigProperties.getQueueLength());
@@ -92,6 +93,21 @@ public class DeviceReceive implements MessageListener {
                     }
                 } else {
                     log.warn("来自: " + publishData.getFrom() + " 地锁,编号: " + lockCode + " : 经过核实,该编号不是平台设备,忽略执行以下逻辑.");
+                }
+            } else {
+                String retBody = SpkCommonResult.success("Device Receive Type Event, Not Deal.").toString();
+                String replyTo = message.getMessageProperties().getReplyTo();
+                String sndts = DateUtils.timestamp();
+                log.info("#" + from + "-" + topic + " ==> " + retBody + " to " + replyTo + " at " + sndts);
+
+                if (Objects.nonNull(replyTo)) {
+                    MessageProperties replyMessageProperties = new MessageProperties();
+                    replyMessageProperties.setHeader("method", CTP_REQUEST_PARK_STATUS_ACK);
+                    replyMessageProperties.setCorrelationId(message.getMessageProperties().getCorrelationId());
+                    Message messageRet = new Message(JSON.toJSONString(retBody).getBytes(), replyMessageProperties);
+                    RABBIT_TEMPLATE.send(replyTo, messageRet);
+                } else {
+                    log.error(CTP_REQUEST_PARK_STATUS_ACK + " is discarded as replyTo is null");
                 }
             }
 
@@ -118,20 +134,5 @@ public class DeviceReceive implements MessageListener {
     }
 
 
-    /**
-     * 根据设备编号获取车位信息.
-     * @param deviceNo device no
-     * @return {@link ParkingLockModel}
-     */
-    private ParkingLockModel getParkInfoByDeviceNo(final String deviceNo) {
-        JSONObject request = new JSONObject();
-        request.put("deviceNo", deviceNo);
-        log.info("设备编号: " + deviceNo + ",请求车位信息发送报文: " + request.toJSONString());
-        JSONObject result = HttpUtils.sendPost(sparkProperties.getUrl() + DataConstant.REQUEST_LOCK_DEVICE_RESOURCE, request.toJSONString());
-        if (Objects.isNull(result) || !result.containsKey("code") || !result.getString("code").equals("00000")) {
-            return null;
-        }
-        log.info("设备编号: " + deviceNo + ",接收车位信息报文: " + result.toJSONString());
-        return JSON.parseObject(result.getString("data"), ParkingLockModel.class);
-    }
+
 }

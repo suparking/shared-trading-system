@@ -65,4 +65,6 @@ public class ParkController {
     public SpkCommonResult saveParkEvent(@RequestHeader("from") final String from, @RequestBody final String params) {
         return SpkCommonResult.success("操作成功");
     }
+
+//    public SpkCommonResult scanCodeQueryFee()
 }

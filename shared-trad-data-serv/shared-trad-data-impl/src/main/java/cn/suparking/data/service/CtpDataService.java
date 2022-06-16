@@ -11,4 +11,11 @@ public interface CtpDataService {
      * @return {@link SpkCommonResult}
      */
     SpkCommonResult parkStatus(JSONObject obj);
+
+    /**
+     * 地锁复位时候先查询业务是否允许降板.
+     * @param params {@link JSONObject}
+     * @return {@link SpkCommonResult}
+     */
+    SpkCommonResult searchBoardStatus(JSONObject params);
 }

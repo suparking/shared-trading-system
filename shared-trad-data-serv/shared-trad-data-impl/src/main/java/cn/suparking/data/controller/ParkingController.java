@@ -30,13 +30,22 @@ public class ParkingController {
     }
 
     /**
+     * 地锁复位时候先查询业务是否允许降板.
+     * @param params {@link JSONObject}
+     * @return {@link SpkCommonResult}
+     */
+    public SpkCommonResult searchBoardStatus(@RequestBody final JSONObject params) {
+        return ctpDataService.searchBoardStatus(params);
+    }
+
+    /**
      * receive ctp park status.
-     * @param obj device data
+     * @param params device data
      * @return {@link SpkCommonResult}
      */
     @PostMapping("/parkStatus")
-    public SpkCommonResult parkStatus(@RequestBody final JSONObject obj) {
-        return ctpDataService.parkStatus(obj);
+    public SpkCommonResult parkStatus(@RequestBody final JSONObject params) {
+        return ctpDataService.parkStatus(params);
     }
 
     /**

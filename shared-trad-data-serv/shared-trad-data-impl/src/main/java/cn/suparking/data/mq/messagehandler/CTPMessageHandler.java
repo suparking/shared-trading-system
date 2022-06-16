@@ -4,6 +4,8 @@ import cn.suparking.common.api.beans.SpkCommonResult;
 import cn.suparking.common.api.configuration.SnowflakeConfig;
 import cn.suparking.common.api.exception.SpkCommonCode;
 import cn.suparking.common.api.utils.DateUtils;
+import cn.suparking.data.Application;
+import cn.suparking.data.api.beans.EventType;
 import cn.suparking.data.api.beans.ParkStatusModel;
 import cn.suparking.data.api.beans.ParkingDTO;
 import cn.suparking.data.api.beans.ParkingEventDTO;
@@ -14,6 +16,7 @@ import cn.suparking.data.api.beans.ProjectConfig;
 import cn.suparking.data.api.constant.DataConstant;
 import cn.suparking.data.dao.entity.ParkingDO;
 import cn.suparking.data.exception.SharedTradException;
+import cn.suparking.data.mq.messageTemplate.DeviceMessageThread;
 import cn.suparking.data.mq.messageTemplate.MessageTemplate;
 import cn.suparking.data.service.ParkingEventService;
 import cn.suparking.data.service.ParkingService;
@@ -27,7 +30,6 @@ import org.apache.shardingsphere.transaction.core.TransactionType;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +46,7 @@ public class CTPMessageHandler extends MessageHandler {
 
     private final ParkingEventService parkingEventService;
 
+    private final DeviceMessageThread deviceMessageThread = Application.getBean("DeviceMessageThread", DeviceMessageThread.class);
     /**
      * constructor.
      */
@@ -91,7 +94,7 @@ public class CTPMessageHandler extends MessageHandler {
 
         // 判断事件是入场 -> 查询数据库时间最近的记录 ; 如果是入场,那么比对两者时间差
         JSONObject json = JSON.parseObject((String) obj, JSONObject.class);
-        if (Objects.isNull(json)) {
+        if (Objects.isNull(json) || Objects.isNull(json.getJSONObject("parkingConfig"))) {
             log.warn("操作停车记录时候,未获取到项目: " + parkingLockModel.getProjectNo() + ", 配置信息,默认做落库操作");
             return SpkCommonResult.success("Shared Trad Data ProjectConfig Not Exists");
         }
@@ -103,12 +106,9 @@ public class CTPMessageHandler extends MessageHandler {
         }
 
         // 查询 当前场库,当前车位 最近一次记录.
-        Map<String, Object> sqlParams = new HashMap<>(3);
-        sqlParams.put("projectId", Long.valueOf(parkingLockModel.getProjectId()));
-        sqlParams.put("projectNo", parkingLockModel.getProjectNo());
-        sqlParams.put("parkId", parkingLockModel.getParkId());
-        ParkingDO parkingDO = parkingService.findByProjectIdAndParkId(sqlParams);
-        if (Objects.nonNull(parkingDO) && notimeout(parkingDO.getLatestTriggerTime(), projectConfig.getMinIntervalForDupPark()) && parkStatusModel.getParkStatus()) {
+        ParkingDO parkingDO = deviceMessageThread.getLatestParkingDO(parkingLockModel);
+        if (Objects.nonNull(parkingDO) && notimeout(parkingDO.getLatestTriggerTime(), projectConfig.getMinIntervalForDupPark())
+                && parkStatusModel.getParkStatus() && parkingDO.getParkingState().equals(ParkingState.ENTERED.name())) {
             return SpkCommonResult.success("Shared Trad minIntervalDupPark no timeout.");
         }
         // 入场数据落库.
@@ -145,6 +145,7 @@ public class CTPMessageHandler extends MessageHandler {
         // 存储event.
         ParkingEventDTO parkingEventDTO = ParkingEventDTO.builder()
                 .projectId(parkingLockModel.getProjectId())
+                .eventType(EventType.EV_ENTER.name())
                 .eventTime(currentTime)
                 .deviceNo(parkingLockModel.getDeviceNo())
                 .parkId(parkingLockModel.getParkId())
