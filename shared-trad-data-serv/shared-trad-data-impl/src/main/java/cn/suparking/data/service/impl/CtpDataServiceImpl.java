@@ -1,15 +1,14 @@
 package cn.suparking.data.service.impl;
 
 import cn.suparking.common.api.beans.SpkCommonResult;
-import cn.suparking.common.api.utils.HttpUtils;
 import cn.suparking.data.Application;
 import cn.suparking.data.api.beans.ParkStatusModel;
 import cn.suparking.data.api.beans.ParkingLockModel;
 import cn.suparking.data.api.beans.ParkingState;
 import cn.suparking.data.api.beans.PublishData;
-import cn.suparking.data.api.constant.DataConstant;
-import cn.suparking.data.configuration.properties.SparkProperties;
+import cn.suparking.data.api.query.ParkQuery;
 import cn.suparking.data.dao.entity.ParkingDO;
+import cn.suparking.data.dao.mapper.ParkingMapper;
 import cn.suparking.data.mq.messageTemplate.DeviceMessageThread;
 import cn.suparking.data.mq.messagehandler.CTPMessageHandler;
 import cn.suparking.data.service.CtpDataService;
@@ -19,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -30,13 +28,12 @@ public class CtpDataServiceImpl implements CtpDataService {
 
     private final CTPMessageHandler ctpMessageHandler;
 
-    @Resource
-    private SparkProperties sparkProperties;
-
+    private final ParkingMapper parkingMapper;
     private final DeviceMessageThread deviceMessageThread = Application.getBean("DeviceMessageThread", DeviceMessageThread.class);
 
-    public CtpDataServiceImpl(final CTPMessageHandler ctpMessageHandler) {
+    public CtpDataServiceImpl(final CTPMessageHandler ctpMessageHandler, final ParkingMapper parkingMapper) {
         this.ctpMessageHandler = ctpMessageHandler;
+        this.parkingMapper = parkingMapper;
     }
 
     @Override
@@ -79,5 +76,19 @@ public class CtpDataServiceImpl implements CtpDataService {
             result.put("status", 1);
         }
         return SpkCommonResult.success(result);
+    }
+
+    @Override
+    public ParkingLockModel findParkingLock(final String deviceNo) {
+        return deviceMessageThread.getParkInfoByDeviceNo(deviceNo);
+    }
+
+    @Override
+    public ParkingDO findParking(final ParkQuery parkQuery) {
+        Map<String, Object> sqlParams = new HashMap<>();
+        sqlParams.put("projectId", parkQuery.getProjectId());
+        sqlParams.put("projectNo", parkQuery.getProjectNo());
+        sqlParams.put("parkId", parkQuery.getParkId());
+        return parkingMapper.findByParkIdAndParkState(sqlParams);
     }
 }

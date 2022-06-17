@@ -1,6 +1,9 @@
 package cn.suparking.data.service;
 
 import cn.suparking.common.api.beans.SpkCommonResult;
+import cn.suparking.data.api.beans.ParkingLockModel;
+import cn.suparking.data.api.query.ParkQuery;
+import cn.suparking.data.dao.entity.ParkingDO;
 import com.alibaba.fastjson.JSONObject;
 
 public interface CtpDataService {
@@ -18,4 +21,18 @@ public interface CtpDataService {
      * @return {@link SpkCommonResult}
      */
     SpkCommonResult searchBoardStatus(JSONObject params);
+
+    /**
+     * 根据设备编号查询车位信息.
+     * @param deviceNo device no
+     * @return {@link ParkingLockModel}
+     */
+    ParkingLockModel findParkingLock(String deviceNo);
+
+    /**
+     * 根据场库信息,车位ID查询最近入场记录.
+     * @param parkQuery {@link ParkQuery}
+     * @return {@link ParkingDO}
+     */
+    ParkingDO findParking(ParkQuery parkQuery);
 }

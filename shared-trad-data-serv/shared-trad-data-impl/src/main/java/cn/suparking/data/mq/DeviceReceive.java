@@ -1,7 +1,6 @@
 package cn.suparking.data.mq;
 
 import cn.suparking.common.api.beans.SpkCommonResult;
-import cn.suparking.common.api.utils.DateUtils;
 import cn.suparking.data.Application;
 import cn.suparking.data.api.beans.ParkStatusModel;
 import cn.suparking.data.api.beans.ParkingLockModel;
@@ -12,13 +11,13 @@ import cn.suparking.data.mq.messageTemplate.GroupInfoObj;
 import cn.suparking.data.mq.messageTemplate.GroupInfoService;
 import cn.suparking.data.mq.messageTemplate.MessageObj;
 import cn.suparking.data.mq.messageTemplate.MessageTemplate;
+import cn.suparking.data.mq.messageTemplate.RabbitUtils;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
-import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -30,7 +29,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static cn.suparking.data.api.constant.DataConstant.CTP_REQUEST_PARK_STATUS_ACK;
 import static cn.suparking.data.api.constant.DataConstant.CTP_TYPE;
 import static cn.suparking.data.api.constant.DataConstant.DATA_SAVE;
 
@@ -38,12 +36,16 @@ import static cn.suparking.data.api.constant.DataConstant.DATA_SAVE;
 @Component("DeviceReceive")
 public class DeviceReceive implements MessageListener {
 
-    private static final RabbitTemplate RABBIT_TEMPLATE = Application.getBean("MQCloudTemplate", RabbitTemplate.class);
-
     @Resource
     private MQConfigProperties mqConfigProperties;
 
+    private final RabbitUtils rabbitUtils;
+
     private final DeviceMessageThread deviceMessageThread = Application.getBean("DeviceMessageThread", DeviceMessageThread.class);
+
+    public DeviceReceive(@Lazy final RabbitUtils rabbitUtils) {
+        this.rabbitUtils = rabbitUtils;
+    }
 
     @Override
     public void onMessage(final Message message) {
@@ -96,19 +98,7 @@ public class DeviceReceive implements MessageListener {
                 }
             } else {
                 String retBody = SpkCommonResult.success("Device Receive Type Event, Not Deal.").toString();
-                String replyTo = message.getMessageProperties().getReplyTo();
-                String sndts = DateUtils.timestamp();
-                log.info("#" + from + "-" + topic + " ==> " + retBody + " to " + replyTo + " at " + sndts);
-
-                if (Objects.nonNull(replyTo)) {
-                    MessageProperties replyMessageProperties = new MessageProperties();
-                    replyMessageProperties.setHeader("method", CTP_REQUEST_PARK_STATUS_ACK);
-                    replyMessageProperties.setCorrelationId(message.getMessageProperties().getCorrelationId());
-                    Message messageRet = new Message(JSON.toJSONString(retBody).getBytes(), replyMessageProperties);
-                    RABBIT_TEMPLATE.send(replyTo, messageRet);
-                } else {
-                    log.error(CTP_REQUEST_PARK_STATUS_ACK + " is discarded as replyTo is null");
-                }
+                rabbitUtils.sendRabbitAck(message, from, topic, retBody);
             }
 
         } catch (Exception ex) {
@@ -132,7 +122,4 @@ public class DeviceReceive implements MessageListener {
         groupInfoObj.setMessages(messages);
         return GroupInfoService.insertGroupInfoObj(groupInfoObj);
     }
-
-
-
 }

@@ -1,15 +1,20 @@
 package cn.suparking.data.controller;
 
 import cn.suparking.common.api.beans.SpkCommonResult;
+import cn.suparking.data.api.beans.ParkingLockModel;
+import cn.suparking.data.api.query.ParkQuery;
+import cn.suparking.data.dao.entity.ParkingDO;
 import cn.suparking.data.service.CtpDataService;
 import com.alibaba.fastjson.JSONObject;
 import cn.suparking.data.api.beans.ParkConfigDTO;
 import cn.suparking.data.service.ParkConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -56,5 +61,25 @@ public class ParkingController {
     @PostMapping("/parkConfig")
     public SpkCommonResult parkingConfig(@Valid @RequestBody final ParkConfigDTO parkSettingDTO) {
         return parkConfigService.parkingConfig(parkSettingDTO);
+    }
+
+    /**
+     * 根据deviceNo 查询 车位锁信息.
+     * @param deviceNo device no.
+     * @return {@link ParkingLockModel}
+     */
+    @GetMapping("/findParkingLock")
+    public ParkingLockModel findParkingLock(@RequestParam("deviceNo")final String deviceNo) {
+        return ctpDataService.findParkingLock(deviceNo);
+    }
+
+    /**
+     * 查询最近一次入场记录.
+     * @param parkQuery {@link ParkQuery}
+     * @return {@Link ParkingDO}
+     */
+    @PostMapping("/findParking")
+    public ParkingDO findParking(@RequestBody final ParkQuery parkQuery) {
+        return ctpDataService.findParking(parkQuery);
     }
 }

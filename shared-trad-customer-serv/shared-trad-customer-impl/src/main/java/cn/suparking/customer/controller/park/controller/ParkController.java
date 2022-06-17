@@ -3,6 +3,7 @@ package cn.suparking.customer.controller.park.controller;
 import cn.suparking.common.api.beans.SpkCommonResult;
 import cn.suparking.common.api.utils.SpkCommonAssert;
 import cn.suparking.common.api.utils.SpkCommonResultMessage;
+import cn.suparking.customer.api.beans.ParkFeeQueryDTO;
 import cn.suparking.customer.beans.park.LocationDTO;
 import cn.suparking.customer.controller.park.service.ParkService;
 import lombok.extern.slf4j.Slf4j;
@@ -66,5 +67,14 @@ public class ParkController {
         return SpkCommonResult.success("操作成功");
     }
 
-//    public SpkCommonResult scanCodeQueryFee()
+    /**
+     * 扫码查询费用.
+     * @param sign C 端查询费用 签名
+     * @param parkFeeQueryDTO {@link ParkFeeQueryDTO}
+     * @return {@link SpkCommonResult}
+     */
+    @PostMapping("scanCodeQueryFee")
+    public SpkCommonResult scanCodeQueryFee(@RequestHeader("sign") final String sign, @RequestBody final ParkFeeQueryDTO parkFeeQueryDTO) {
+        return parkService.scanCodeQueryFee(sign, parkFeeQueryDTO);
+    }
 }
