@@ -26,5 +26,5 @@ public interface CarGroupStockLogTemplateService {
      * @return {@linkplain SpkCommonResult}
      */
     @PostMapping("/insert")
-    Integer insert(@RequestBody CarGroupStockOperateRecordDTO carGroupStockOperateRecordDTO);
+    SpkCommonResult insert(@RequestBody CarGroupStockOperateRecordDTO carGroupStockOperateRecordDTO);
 }

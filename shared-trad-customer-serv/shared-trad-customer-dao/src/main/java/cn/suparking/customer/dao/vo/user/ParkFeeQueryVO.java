@@ -1,7 +1,7 @@
 package cn.suparking.customer.dao.vo.user;
 
 import cn.suparking.customer.api.beans.parkfee.DiscountInfo;
-// import cn.suparking.data.dao.entity.DiscountInfoDO;
+import cn.suparking.data.dao.entity.DiscountInfoDO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +16,7 @@ import java.util.List;
 public class ParkFeeQueryVO {
 
     // 待使用优惠券列表
-    // private List<DiscountInfoDO> discountInfoList;
+    private List<DiscountInfoDO> discountInfoList;
 
     // 当前使用的优惠券信息
     private DiscountInfo discountInfo;

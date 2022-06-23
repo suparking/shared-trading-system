@@ -234,7 +234,7 @@ public class ParkServiceImpl implements ParkService {
         // 根据UnionId 获取优惠券信息
         List<DiscountInfoDO> discountInfoDOList = getDiscountInfoListByUnionId(parking.getProjectNo(), parkFeeQueryDTO.getUnionId());
         if (Objects.nonNull(discountInfoDOList)) {
-            // parkFeeQueryVO.setDiscountInfoList(discountInfoDOList);
+            parkFeeQueryVO.setDiscountInfoList(discountInfoDOList);
         }
 
         // 将临时数据根据 过期时间 存入Redis
