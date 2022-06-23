@@ -1,7 +1,10 @@
 package cn.suparking.order.service;
 
+import cn.suparking.common.api.beans.SpkCommonResult;
 import cn.suparking.order.api.beans.ParkingOrderDTO;
 import cn.suparking.order.dao.entity.ParkingOrderDO;
+
+import java.util.List;
 
 public interface ParkingOrderService {
 
@@ -20,4 +23,13 @@ public interface ParkingOrderService {
      * @return Integer
      */
     Integer createOrUpdate(ParkingOrderDTO parkingOrderDTO);
+
+    /**
+     * 根据userId查询常去车场.
+     *
+     * @param userId 用户id
+     * @param count 查询记录数
+     * @return {@linkplain SpkCommonResult}
+     */
+    List<String> detailParkingOrder(Long userId, Integer count);
 }

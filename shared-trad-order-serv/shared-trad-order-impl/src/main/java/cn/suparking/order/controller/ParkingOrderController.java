@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -30,7 +32,7 @@ public class ParkingOrderController {
     }
 
     /**
-     * 根据退费订单id查询退费订单信息.
+     * 根据订单id查询订单信息.
      *
      * @param id 退费订单id
      * @return {@linkplain SpkCommonResult}
@@ -57,5 +59,20 @@ public class ParkingOrderController {
                     Integer count = parkingOrderService.createOrUpdate(item);
                     return SpkCommonResult.success(SpkCommonResultMessage.CREATE_SUCCESS, count);
                 }).orElseGet(() -> SpkCommonResult.error("订单信息不存在"));
+    }
+
+    /**
+     * 根据userId查询常去车场.
+     *
+     * @param userId 用户id
+     * @param count 查询记录数
+     * @return {@linkplain SpkCommonResult}
+     */
+    @GetMapping("/regularLocations")
+    public SpkCommonResult detailParkingOrder(@RequestParam final Long userId,@RequestParam final Integer count) {
+        List<String> projectNoList = parkingOrderService.detailParkingOrder(userId,count);
+        return Optional.ofNullable(projectNoList)
+                .map(item -> SpkCommonResult.success(SpkCommonResultMessage.DETAIL_SUCCESS, item))
+                .orElseGet(() -> SpkCommonResult.error("订单信息不存在"));
     }
 }

@@ -1,11 +1,16 @@
 package cn.suparking.order.service.impl;
 
+import cn.suparking.common.api.beans.SpkCommonResult;
 import cn.suparking.order.api.beans.ParkingOrderDTO;
-import cn.suparking.order.service.ParkingOrderService;
 import cn.suparking.order.dao.entity.ParkingOrderDO;
 import cn.suparking.order.dao.mapper.ParkingOrderMapper;
+import cn.suparking.order.service.ParkingOrderService;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ParkingOrderServiceImpl implements ParkingOrderService {
@@ -28,5 +33,20 @@ public class ParkingOrderServiceImpl implements ParkingOrderService {
             return parkingOrderMapper.insert(parkingOrderDO);
         }
         return parkingOrderMapper.update(parkingOrderDO);
+    }
+
+    /**
+     * 根据userId查询常去车场.
+     *
+     * @param userId 用户id
+     * @param count  查询记录数
+     * @return {@linkplain SpkCommonResult}
+     */
+    @Override
+    public List<String> detailParkingOrder(Long userId, Integer count) {
+        PageHelper.startPage(1, count == null ? 5 : count);
+        List<String> projectNoList = parkingOrderMapper.detailParkingOrder(userId);
+        PageInfo<String> carGroupOrderDOPageInfo = new PageInfo<>(projectNoList);
+        return carGroupOrderDOPageInfo.getList();
     }
 }

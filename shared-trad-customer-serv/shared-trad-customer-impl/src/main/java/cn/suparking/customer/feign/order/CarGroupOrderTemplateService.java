@@ -6,8 +6,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(value = "shared-trad-order-serv",path = "/car-group-order")
-public interface CarGroupOrderTemplateSerivce {
+@FeignClient(value = "shared-trad-order-serv",path = "/order-center/car-group-order")
+public interface CarGroupOrderTemplateService {
 
     /**
      * 新增/更新合约订单.

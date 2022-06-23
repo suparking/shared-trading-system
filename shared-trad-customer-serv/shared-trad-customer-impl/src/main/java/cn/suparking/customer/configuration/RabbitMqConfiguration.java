@@ -28,6 +28,7 @@ import org.springframework.retry.support.RetryTemplate;
 import javax.annotation.Resource;
 
 @Configuration
+@ConditionalOnProperty(name = "spring.rabbitmq.enable", matchIfMissing = true)
 public class RabbitMqConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(RabbitMqConfiguration.class);
@@ -147,7 +148,6 @@ public class RabbitMqConfiguration {
      * @return {@link DirectMessageListenerContainer}
      */
     @Bean("MQCloudMessageListenerContainer")
-    @ConditionalOnProperty(name = "spring.rabbitmq.enable", matchIfMissing = true)
     public DirectMessageListenerContainer cloudMessageListenerContainer(
             @Qualifier("MQCloudConnectionFactory")final CachingConnectionFactory connectionFactory,
             @Qualifier("MQCloudAMQPAdmin")final AmqpAdmin admin,

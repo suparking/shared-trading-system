@@ -378,4 +378,14 @@
         where
             id = #{id,jdbcType=BIGINT}
     </select>
+    <select id="detailParkingOrder" resultType="java.lang.String">
+        SELECT
+            project_no
+        FROM
+            spk_parking_order
+        WHERE
+            user_id = #{userId}
+        GROUP BY project_no
+        ORDER BY id DESC
+    </select>
 </mapper>

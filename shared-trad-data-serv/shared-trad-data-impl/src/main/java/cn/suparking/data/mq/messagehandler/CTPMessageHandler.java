@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.transaction.annotation.ShardingSphereTransactionType;
 import org.apache.shardingsphere.transaction.core.TransactionType;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,7 @@ import static cn.suparking.data.api.constant.DataConstant.CTP_TYPE;
 
 @Slf4j
 @Component("MQ_CTP_PARK_STATUS")
+@ConditionalOnProperty(name = "spring.rabbitmq.enable", matchIfMissing = true)
 public class CTPMessageHandler extends MessageHandler {
 
     private final ParkingService parkingService;

@@ -3,7 +3,7 @@ package cn.suparking.customer.controller.cargrouporder.service.impl;
 import cn.suparking.common.api.beans.SpkCommonResult;
 import cn.suparking.customer.api.beans.cargrouporder.CarGroupOrderDTO;
 import cn.suparking.customer.controller.cargrouporder.service.CarGroupOrderService;
-import cn.suparking.customer.feign.order.CarGroupOrderTemplateSerivce;
+import cn.suparking.customer.feign.order.CarGroupOrderTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -11,10 +11,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class CarGroupOrderServiceImpl implements CarGroupOrderService {
 
-    private final CarGroupOrderTemplateSerivce carGroupOrderTemplateSerivce;
+    private final CarGroupOrderTemplateService carGroupOrderTemplateService;
 
-    public CarGroupOrderServiceImpl(final CarGroupOrderTemplateSerivce carGroupOrderTemplateSerivce) {
-        this.carGroupOrderTemplateSerivce = carGroupOrderTemplateSerivce;
+    public CarGroupOrderServiceImpl(final CarGroupOrderTemplateService carGroupOrderTemplateService) {
+        this.carGroupOrderTemplateService = carGroupOrderTemplateService;
     }
 
     /**
@@ -25,7 +25,7 @@ public class CarGroupOrderServiceImpl implements CarGroupOrderService {
      */
     @Override
     public SpkCommonResult createOrUpdate(final CarGroupOrderDTO carGroupOrderDTO) {
-        Integer count = carGroupOrderTemplateSerivce.createCarGroupOrder(carGroupOrderDTO);
+        Integer count = carGroupOrderTemplateService.createCarGroupOrder(carGroupOrderDTO);
         if (count > 0) {
             return SpkCommonResult.success();
         }

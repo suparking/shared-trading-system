@@ -2,6 +2,9 @@ package cn.suparking.order.dao.mapper;
 
 import cn.suparking.order.dao.entity.ParkingOrderDO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface ParkingOrderMapper {
@@ -29,4 +32,6 @@ public interface ParkingOrderMapper {
      * @return int
      */
     int update(ParkingOrderDO parkingOrderDO);
+
+    List<String> detailParkingOrder(@Param("userId") Long userId);
 }

@@ -20,9 +20,7 @@ public class CarGroupOrderDTO implements Serializable {
 
     private String id;
 
-    private String userId;
-
-    @NotNull
+    @NotNull(message = "订单号不能为空")
     @NotBlank
     private String orderNo;
 
@@ -45,6 +43,8 @@ public class CarGroupOrderDTO implements Serializable {
     private String payType;
 
     private String userMobile;
+
+    private String userName;
 
     private String orderState;
 

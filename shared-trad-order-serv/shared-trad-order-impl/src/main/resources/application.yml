@@ -77,10 +77,10 @@ spring:
 #              actual-data-nodes: ds.spk_car_group_order_$->{0..4}
 #              table-strategy:
 #                standard:
-#                  sharding-column: user_id
+#                  sharding-column: id
 #                  sharding-algorithm-name: spk-car-group-order-inline
 #              key-generate-strategy:
-#                column: user_id
+#                column: id
 #                key-generator-name: snowflake
 #                #合约退费订单
 #            spk_car_group_refund_order:
@@ -190,7 +190,7 @@ spring:
     exchange: spk.shared
     consumer-prefetch: 5
     concurrent-consumer: 2
-    enable: true
+    enable: false
     # redis 配置
   redis:
     host: 192.168.1.123
@@ -215,7 +215,7 @@ spring:
         # 服务发现默认开关打开
         enabled: true
         # 服务地址,集群用逗号分开
-        server-addr: 47.98.44.236:8848
+        server-addr: 47.98.44.236:8084
         # 注册中心服务名称 application name,一般不用配置
         service: shared-trad-order-serv
         # nacos 客户端向服务端发送心跳时间间隔,时间单位其实是ms
@@ -262,7 +262,7 @@ seata:
     type: nacos
     nacos:
       application: seata-server
-      server-addr: 47.98.44.236:8848
+      server-addr: 47.98.44.236:8084
       namespace: dev
       group: myGroup
       cluster: default

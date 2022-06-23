@@ -69,8 +69,19 @@ spring:
     # 读写分离配置
     rules:
       sharding:
-        bindings-tables[0]: spk_parking, spk_parking_event, spk_parking_trigger
+        bindings-tables[0]: spk_car_group_stock_operate_record, spk_parking, spk_parking_event, spk_parking_trigger
         tables:
+          # 停车表
+          spk_car_group_stock_operate_record:
+            # 数据库 必须填 ds 如果分库时候 那就是 ds-$->{0..4}
+            actual-data-nodes: ds.spk_car_group_stock_operate_record_$->{0..4}
+            table-strategy:
+              standard:
+                sharding-column: stock_id
+                sharding-algorithm-name: spk_car_group_stock_operate_record-inline
+            key-generate-strategy:
+              column: stock_id
+              key-generator-name: snowflake
           # 停车表
           spk_parking:
             # 数据库 必须填 ds 如果分库时候 那就是 ds-$->{0..4}
@@ -146,7 +157,7 @@ spring:
     exchange: spk.device
     consumer-prefetch: 5
     concurrent-consumer: 2
-    enable: true
+    enable: false
   # cloud-nacos 配置
   cloud:
     alibaba:

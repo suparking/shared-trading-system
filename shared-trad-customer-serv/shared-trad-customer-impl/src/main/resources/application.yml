@@ -30,7 +30,7 @@ spring:
     nacos:
       discovery:
         # 服务发现默认开关打开
-        enabled: true
+        enabled: false
         # 服务地址,集群用逗号分开
         server-addr: 47.98.44.236:8848
         # 注册中心服务名称 application name,一般不用配置
@@ -70,7 +70,7 @@ spring:
     exchange: spk.shared
     consumer-prefetch: 5
     concurrent-consumer: 2
-    enable: true
+    enable: false
     # redis 配置
   redis:
     host: 192.168.1.123
