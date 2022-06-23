@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface ParkingOrderMapper {
@@ -34,4 +35,28 @@ public interface ParkingOrderMapper {
     int update(ParkingOrderDO parkingOrderDO);
 
     List<String> detailParkingOrder(@Param("userId") Long userId);
+
+    /**
+     * 查询规定范围内的订单数据.
+     *
+     * @param params {@link Map}
+     * @return {@link List}
+     */
+    List<ParkingOrderDO> findByUserIdsAndBeginTimeOrEndTimeRange(Map<String, Object> params);
+
+    /**
+     * 查询规定范围内的订单数据.
+     *
+     * @param params {@link Map}
+     * @return {@link List}
+     */
+    List<ParkingOrderDO> findByUserIdsAndEndTimeRange(Map<String, Object> params);
+
+    /**
+     * 查询规定范围内的订单数据.
+     *
+     * @param params {@link Map}
+     * @return {@link List}
+     */
+    ParkingOrderDO findNextAggregateBeginTime(Map<String, Object> params);
 }

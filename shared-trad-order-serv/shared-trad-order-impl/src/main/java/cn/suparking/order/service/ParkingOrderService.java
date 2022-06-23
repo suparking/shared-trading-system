@@ -2,6 +2,7 @@ package cn.suparking.order.service;
 
 import cn.suparking.common.api.beans.SpkCommonResult;
 import cn.suparking.order.api.beans.ParkingOrderDTO;
+import cn.suparking.order.api.beans.ParkingQuery;
 import cn.suparking.order.dao.entity.ParkingOrderDO;
 
 import java.util.List;
@@ -32,4 +33,25 @@ public interface ParkingOrderService {
      * @return {@linkplain SpkCommonResult}
      */
     List<String> detailParkingOrder(Long userId, Integer count);
+
+    /**
+     *  findByUserIdsAndBeginTimeOrEndTimeRange.
+     * @param parkingQuery {@link ParkingQuery}
+     * @return {@link SpkCommonResult}
+     */
+    SpkCommonResult findByUserIdsAndBeginTimeOrEndTimeRange(ParkingQuery parkingQuery);
+
+    /**
+     * findByUserIdsAndEndTimeRange.
+     * @param parkingQuery {@link ParkingQuery}
+     * @return {@link SpkCommonResult}
+     */
+    SpkCommonResult findByUserIdsAndEndTimeRange(ParkingQuery parkingQuery);
+
+    /**
+     * findNextAggregateBeginTime.
+     * @param parkingQuery {@link ParkingQuery}
+     * @return {@link SpkCommonResult}
+     */
+    SpkCommonResult findNextAggregateBeginTime(ParkingQuery parkingQuery);
 }

@@ -5,6 +5,27 @@ package cn.suparking.common.api.utils;
  */
 public final class SpkCommonResultMessage {
 
+    public static final String SIGN_NOT_VALID = "sign not valid.";
+
+    public static final String DEVICE_NOT_SETTING = "device not set park.";
+
+    public static final String ENTER_PARKING_NOT_FOUND = "parking entered record not found.";
+
+    public static final String CHARGE_VALID = "charge server is valid";
+
+    public static final String CHARGE_CHANGE_DATA_VALID = "charge change data valid.";
+
+    // parking user valid.
+    public static final String PARKING_DATE_USER_VALID = "parking user data is valid";
+
+    // parking trigger valid
+    public static final String PARKING_DATA_TRIGGER_VALID = "parking trigger data is valid";
+
+    public static final String PARKING_CONFIG_VALID = "parking config is valid";
+
+    // parking events valid
+    public static final String PARKING_DATA_EVENT_VALID = "parking events data is valid";
+
     public static final String TOKEN_HAS_NO_PERMISSION = "token has no permission";
 
     public static final String UNIQUE_INDEX_CONFLICT_ERROR = "unique index conflict, please enter again";

@@ -27,6 +27,7 @@ public interface CarGroupService {
     SpkCommonResult insert(CarGroupDTO carGroupDTO);
 
     /**
+<<<<<<< HEAD
      * 合约修改.
      *
      * @param carGroupDTO {@link CarGroupDTO}
@@ -35,6 +36,8 @@ public interface CarGroupService {
     SpkCommonResult update(CarGroupDTO carGroupDTO);
 
     /**
+=======
+>>>>>>> 0e60ef51967f0d89fdcfe9d8918e5601cb43a29c
      * 合约删除.
      *
      * @param carGroupDTO {@link CarGroupDTO}

@@ -68,6 +68,14 @@ public class CarGroupOrderDTO implements Serializable {
     private Long endTime;
 
     /**
+<<<<<<< HEAD
+=======
+     * 车辆类型id.
+     */
+    private String carTypeIds;
+
+    /**
+>>>>>>> 0e60ef51967f0d89fdcfe9d8918e5601cb43a29c
      * 应付金额（RMB分）.
      */
     private Integer dueAmount;
