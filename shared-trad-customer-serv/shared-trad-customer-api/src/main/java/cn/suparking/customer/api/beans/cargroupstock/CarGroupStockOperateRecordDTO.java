@@ -1,5 +1,6 @@
 package cn.suparking.customer.api.beans.cargroupstock;
 
+import cn.suparking.common.api.configuration.SnowflakeConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -78,6 +79,7 @@ public class CarGroupStockOperateRecordDTO implements Serializable {
      * @return {@linkplain CarGroupStockOperateRecordDTO}
      */
     public CarGroupStockOperateRecordDTO logIn(final Long stockId, final Integer quantity, final String creator, final String termNo, final String remark) {
+        this.id = SnowflakeConfig.snowflakeId();
         this.stockId = stockId;
         this.operateType = "INCREASE";
         this.quantity = quantity;
@@ -99,6 +101,7 @@ public class CarGroupStockOperateRecordDTO implements Serializable {
      * @return {@linkplain CarGroupStockOperateRecordDTO}
      */
     public CarGroupStockOperateRecordDTO logOut(final Long stockId, final Integer quantity, final String creator, final String termNo, final String remark) {
+        this.id = SnowflakeConfig.snowflakeId();
         this.stockId = stockId;
         this.operateType = "DECREASE";
         this.quantity = quantity;
@@ -120,6 +123,7 @@ public class CarGroupStockOperateRecordDTO implements Serializable {
      * @return {@linkplain CarGroupStockOperateRecordDTO}
      */
     public CarGroupStockOperateRecordDTO logConsume(final Long stockId, final Integer quantity, final String creator, final String termNo, final String remark) {
+        this.id = SnowflakeConfig.snowflakeId();
         this.stockId = stockId;
         this.operateType = "CONSUME";
         this.quantity = quantity;
@@ -141,6 +145,7 @@ public class CarGroupStockOperateRecordDTO implements Serializable {
      * @return {@linkplain CarGroupStockOperateRecordDTO}
      */
     public CarGroupStockOperateRecordDTO logReturn(final Long stockId, final Integer quantity, final String creator, final String termNo, final String remark) {
+        this.id = SnowflakeConfig.snowflakeId();
         this.stockId = stockId;
         this.operateType = "RETURN";
         this.quantity = quantity;

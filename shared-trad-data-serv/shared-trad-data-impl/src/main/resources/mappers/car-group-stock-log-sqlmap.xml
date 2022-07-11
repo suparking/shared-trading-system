@@ -27,7 +27,7 @@
 		date_updated
     </sql>
 
-	<select id="list"  parameterType="map" resultType="cn.suparking.data.dao.entity.cargroupstocklog.CarGroupStockOperateRecordDO">
+	<select id="list"  parameterType="map" resultMap="BaseResultMap">
 		SELECT
 		<include refid="Base_Column_List"></include>
 		FROM

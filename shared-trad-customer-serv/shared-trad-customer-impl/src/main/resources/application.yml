@@ -8,8 +8,6 @@ server:
   # 增加优雅停机
   shutdown: graceful
 spring:
-  main:
-    allow-bean-definition-overriding: true
   lifecycle:
     # 设置缓冲时间
     timeout-per-shutdown-phase: 20s
@@ -17,7 +15,7 @@ spring:
     # mysql数据源
     username: SPKRoot
     password: SPKRoot2017!
-    url: jdbc:mysql://center.suparking.cn:3306/tbl_mini_business?autoReconnect=true&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC
+    url: jdbc:mysql://center.suparking.cn:3306/tbl_mini_business?autoReconnect=true&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
     # 连接池
@@ -37,7 +35,7 @@ spring:
     nacos:
       discovery:
         # 服务发现默认开关打开
-        enabled: false
+        enabled: true
         # 服务地址,集群用逗号分开
         server-addr: 47.98.44.236:8084
         # 注册中心服务名称 application name,一般不用配置
@@ -61,7 +59,7 @@ spring:
         # [注意]需要在nacos-server中创建好namespace,然后把id copy进来
         namespace: dev
         # [注意] 两个服务如果存在上下游调用关系,必须配置相同的group才能发起访问
-        group: myGroup
+        group: myGroupZ
         # 向注册中心注册服务,默认为true
         # 如果只消费服务,不作为服务提供方,倒是可以设置为false,减少开销
         register-enabled: false

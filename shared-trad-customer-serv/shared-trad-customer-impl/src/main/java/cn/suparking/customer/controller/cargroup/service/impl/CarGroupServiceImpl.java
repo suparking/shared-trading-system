@@ -78,7 +78,6 @@ public class CarGroupServiceImpl implements CarGroupService {
     }
 
     /**
-<<<<<<< HEAD
      * 合约修改.
      *
      * @param carGroupDTO {@link CarGroupDTO}
@@ -97,8 +96,6 @@ public class CarGroupServiceImpl implements CarGroupService {
     }
 
     /**
-=======
->>>>>>> 0e60ef51967f0d89fdcfe9d8918e5601cb43a29c
      * 合约删除.
      *
      * @param carGroupDTO {@link CarGroupDTO}

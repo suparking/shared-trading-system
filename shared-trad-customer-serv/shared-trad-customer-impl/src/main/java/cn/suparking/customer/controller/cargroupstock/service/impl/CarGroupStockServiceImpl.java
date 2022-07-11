@@ -2,13 +2,14 @@ package cn.suparking.customer.controller.cargroupstock.service.impl;
 
 import cn.suparking.common.api.beans.SpkCommonResult;
 import cn.suparking.common.api.configuration.SnowflakeConfig;
+import cn.suparking.common.api.exception.SpkCommonException;
 import cn.suparking.customer.api.beans.cargroupstock.CarGroupStockOperateRecordDTO;
 import cn.suparking.customer.api.beans.cargroupstock.CarGroupStockOperateRecordQueryDTO;
 import cn.suparking.customer.api.beans.cargroupstock.CarGroupStockQueryDTO;
 import cn.suparking.customer.controller.cargroupstock.service.CarGroupStockService;
 import cn.suparking.customer.dao.entity.CarGroupStockDO;
 import cn.suparking.customer.dao.mapper.CarGroupStockMapper;
-import cn.suparking.customer.feign.cargroupstocklog.CarGroupStockLogTemplateService;
+import cn.suparking.customer.feign.data.DataTemplateService;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -27,11 +28,11 @@ public class CarGroupStockServiceImpl implements CarGroupStockService {
 
     private final CarGroupStockMapper carGroupStockMapper;
 
-    private final CarGroupStockLogTemplateService carGroupStockLogTemplateService;
+    private final DataTemplateService dataTemplateService;
 
-    public CarGroupStockServiceImpl(CarGroupStockMapper carGroupStockMapper, CarGroupStockLogTemplateService carGroupStockLogTemplateService) {
+    public CarGroupStockServiceImpl(CarGroupStockMapper carGroupStockMapper, DataTemplateService dataTemplateService) {
         this.carGroupStockMapper = carGroupStockMapper;
-        this.carGroupStockLogTemplateService = carGroupStockLogTemplateService;
+        this.dataTemplateService = dataTemplateService;
     }
 
     /**
@@ -88,7 +89,10 @@ public class CarGroupStockServiceImpl implements CarGroupStockService {
         if (stockQuantity > 0) {
             CarGroupStockOperateRecordDTO record = new CarGroupStockOperateRecordDTO();
             record.logIn(carGroupStock.getId(), stockQuantity, carGroupStock.getCreator(), "901", null);
-            carGroupStockLogTemplateService.insert(record);
+            SpkCommonResult spkCommonResult = dataTemplateService.carGroupStockLogInsert(record);
+            if (spkCommonResult == null || spkCommonResult.getCode() != 200) {
+                throw new SpkCommonException("请求新增合约操作记录失败");
+            }
         }
 
         log.info("[合约库存]-新增合约库存 <====== 请求成功 SUCCESS");
@@ -108,7 +112,7 @@ public class CarGroupStockServiceImpl implements CarGroupStockService {
         String operateType = carGroupStockQueryDTO.getOperateType() == null ? "INCREASE" : carGroupStockQueryDTO.getOperateType();
         Integer quantity = carGroupStockQueryDTO.getQuantity() == null ? 0 : carGroupStockQueryDTO.getQuantity();
         Long id = carGroupStockQueryDTO.getId();
-        String operator = carGroupStockQueryDTO.getCreator();
+        String operator = carGroupStockQueryDTO.getModifier();
         String remark = carGroupStockQueryDTO.getRemark();
 
         if (id == null || operator == null) {
@@ -138,7 +142,7 @@ public class CarGroupStockServiceImpl implements CarGroupStockService {
             //记录入库操作
             CarGroupStockOperateRecordDTO record = new CarGroupStockOperateRecordDTO();
             record.logIn(carGroupStock.getId(), quantity, operator, "901", remark);
-            carGroupStockLogTemplateService.insert(record);
+            dataTemplateService.carGroupStockLogInsert(record);
             return SpkCommonResult.success(carGroupStock);
         }
 
@@ -148,7 +152,7 @@ public class CarGroupStockServiceImpl implements CarGroupStockService {
         //记录人为减库操作
         CarGroupStockOperateRecordDTO record = new CarGroupStockOperateRecordDTO();
         record.logOut(carGroupStock.getId(), quantity, operator, "901", remark);
-        carGroupStockLogTemplateService.insert(record);
+        dataTemplateService.carGroupStockLogInsert(record);
         return SpkCommonResult.success(carGroupStock);
     }
 
@@ -169,7 +173,7 @@ public class CarGroupStockServiceImpl implements CarGroupStockService {
             return SpkCommonResult.error("未选择合约库存");
         }
 
-        SpkCommonResult spkCommonResult = carGroupStockLogTemplateService.list(carGroupStockOperateRecordQueryDTO);
+        SpkCommonResult spkCommonResult = dataTemplateService.carGroupStockLogList(carGroupStockOperateRecordQueryDTO);
         Integer code = spkCommonResult.getCode();
         if (code != 200) {
             log.warn("[合约库存]-获取合约库存操作记录 <====== 请求失败 [{}]", JSONObject.toJSONString(spkCommonResult));
@@ -177,9 +181,9 @@ public class CarGroupStockServiceImpl implements CarGroupStockService {
         }
         Object data = spkCommonResult.getData();
         if (!ObjectUtils.isEmpty(data)) {
-            JSONObject PageInfo = JSONObject.parseObject(JSONObject.toJSONString(data));
-            result.put("total", String.valueOf(PageInfo.getLong("total")));
-            result.put("list", JSONObject.toJSONString(PageInfo.getJSONObject("data")));
+            PageInfo pageInfo = JSONObject.parseObject(JSONObject.toJSONString(data),PageInfo.class);
+            result.put("total", String.valueOf(pageInfo.getTotal()));
+            result.put("list", JSONObject.toJSONString(pageInfo.getList()));
         }
 
         log.info("[合约库存]-获取合约库存操作记录 <====== 请求成功 SUCCESS = [{}]", result);

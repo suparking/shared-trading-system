@@ -49,7 +49,7 @@ public class CarGroupStockQueryDTO {
     /**
      * 操作人.
      */
-    private String creator;
+    private String modifier;
 
     /**
      * 操作类型 (INCREASE 增加库存 / DECREASE 缩减库存).

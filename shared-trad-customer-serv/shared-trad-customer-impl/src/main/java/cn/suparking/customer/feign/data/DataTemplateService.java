@@ -1,5 +1,8 @@
 package cn.suparking.customer.feign.data;
 
+import cn.suparking.common.api.beans.SpkCommonResult;
+import cn.suparking.customer.api.beans.cargroupstock.CarGroupStockOperateRecordDTO;
+import cn.suparking.customer.api.beans.cargroupstock.CarGroupStockOperateRecordQueryDTO;
 import cn.suparking.customer.feign.data.fallback.DataTemplateFallbackFactory;
 import cn.suparking.data.api.beans.ParkingLockModel;
 import cn.suparking.data.api.beans.ProjectConfig;
@@ -59,4 +62,22 @@ public interface DataTemplateService {
      */
     @GetMapping("/data-api/getProjectConfig")
     ProjectConfig getProjectConfig(@RequestParam("projectNo") String projectNo);
+
+    /**
+     * 合约库存列表.
+     *
+     * @param carGroupStockOperateRecordQueryDTO {@link CarGroupStockOperateRecordQueryDTO}
+     * @return {@linkplain SpkCommonResult}
+     */
+    @PostMapping("/car-group-stock-log/list")
+    SpkCommonResult carGroupStockLogList(@RequestBody CarGroupStockOperateRecordQueryDTO carGroupStockOperateRecordQueryDTO);
+
+    /**
+     * 新增合约库存.
+     *
+     * @param carGroupStockOperateRecordDTO {@link CarGroupStockOperateRecordDTO}
+     * @return {@linkplain SpkCommonResult}
+     */
+    @PostMapping("/car-group-stock-log/insert")
+    SpkCommonResult carGroupStockLogInsert(@RequestBody CarGroupStockOperateRecordDTO carGroupStockOperateRecordDTO);
 }
