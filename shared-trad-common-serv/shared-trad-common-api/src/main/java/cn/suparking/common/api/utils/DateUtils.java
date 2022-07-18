@@ -1,11 +1,13 @@
 package cn.suparking.common.api.utils;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -18,6 +20,34 @@ public class DateUtils {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_DATETIME);
 
     private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_DATETIME);
+
+    /**
+     * 获取几天前时间.
+     * @param currentMillis {@link Long}
+     * @param day {@link Integer}
+     * @return {@link Long}
+     */
+    public static Long getBeforeDay(final long currentMillis, final Integer day) {
+        Date date = new Date(currentMillis);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.DAY_OF_MONTH, -day);
+        return calendar.getTime().getTime() / 1000;
+    }
+
+    /**
+     * 获取几天前时间.
+     * @param currentMillis {@link Long}
+     * @param day {@link Integer}
+     * @return {@link Long}
+     */
+    public static Timestamp getBeforeTimestampDay(final long currentMillis, final Integer day) {
+        Date date = new Date(currentMillis);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.DAY_OF_MONTH, -day);
+        return new Timestamp(calendar.getTime().getTime());
+    }
 
     /**
      * 将秒转x天x时x分x秒.

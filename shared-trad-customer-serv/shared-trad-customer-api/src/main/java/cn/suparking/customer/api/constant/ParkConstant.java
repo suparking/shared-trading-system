@@ -47,4 +47,13 @@ public class ParkConstant {
      * 根据项目编号,场库编号获取设备信息.
      */
     public static final String INTERFACE_GETDEVICENO = "/map/getDeviceNo";
+
+    // CTP 设备控制
+    public static final String INTERFACE_CTP_CONTROL_DEVICE = "/ctp/ctpControlCmd";
+
+    // 升板
+    public static final String CTP_CONTROL_UP_TYPE = "up";
+
+    // 降板
+    public static final String CTP_CONTROL_DOWN_TYPE = "down";
 }

@@ -1,6 +1,6 @@
 package cn.suparking.customer.dao.vo.user;
 
-import cn.suparking.customer.api.beans.parkfee.DiscountInfo;
+import cn.suparking.data.api.parkfee.DiscountInfo;
 import cn.suparking.data.dao.entity.DiscountInfoDO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -16,10 +16,6 @@ import cn.suparking.customer.api.beans.ProjectQueryDTO;
 import cn.suparking.customer.api.beans.discount.DiscountDTO;
 import cn.suparking.customer.api.beans.order.OrderDTO;
 import cn.suparking.customer.api.beans.order.OrderQueryDTO;
-import cn.suparking.customer.api.beans.parkfee.DiscountCustomer;
-import cn.suparking.customer.api.beans.parkfee.ParkFeeRet;
-import cn.suparking.customer.api.beans.parkfee.Parking;
-import cn.suparking.customer.api.beans.parkfee.ParkingOrder;
 import cn.suparking.customer.api.constant.ParkConstant;
 import cn.suparking.customer.beans.park.LocationDTO;
 import cn.suparking.customer.beans.park.RegularLocationDTO;
@@ -40,6 +36,10 @@ import cn.suparking.customer.vo.park.ParkInfoVO;
 import cn.suparking.customer.vo.park.ParkPayVO;
 import cn.suparking.data.api.beans.ParkingLockModel;
 import cn.suparking.data.api.beans.ProjectConfig;
+import cn.suparking.data.api.parkfee.DiscountCustomer;
+import cn.suparking.data.api.parkfee.ParkFeeRet;
+import cn.suparking.data.api.parkfee.Parking;
+import cn.suparking.data.api.parkfee.ParkingOrder;
 import cn.suparking.data.api.query.ParkEventQuery;
 import cn.suparking.data.api.query.ParkQuery;
 import cn.suparking.data.dao.entity.DiscountInfoDO;
@@ -53,6 +53,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.suparking.payutils.controller.ShuBoPaymentUtils;
 import com.suparking.payutils.model.APICloseModel;
 import com.suparking.payutils.model.APIOrderModel;
+import com.suparking.payutils.model.APIOrderNo;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -100,6 +102,8 @@ public class ParkServiceImpl implements ParkService {
     @Resource
     private SharedProperties sharedProperties;
 
+    private final OrderServiceImpl orderService;
+
     private final RabbitTemplate rabbitTemplate;
 
     private final DataTemplateService dataTemplateService;
@@ -107,10 +111,11 @@ public class ParkServiceImpl implements ParkService {
     private final UserTemplateService userTemplateService;
 
     public ParkServiceImpl(final DataTemplateService dataTemplateService, @Qualifier("MQCloudTemplate")final RabbitTemplate rabbitTemplate,
-                           final UserTemplateService userTemplateService) {
+                           final UserTemplateService userTemplateService, final OrderServiceImpl orderService) {
         this.dataTemplateService = dataTemplateService;
         this.rabbitTemplate = rabbitTemplate;
         this.userTemplateService = userTemplateService;
+        this.orderService = orderService;
     }
 
     @Override
@@ -130,6 +135,13 @@ public class ParkServiceImpl implements ParkService {
         JSONObject result = HttpUtils.sendGet(sparkProperties.getUrl() + ParkConstant.INTERFACE_ALLPARK, null);
         List<ParkInfoVO> parkInfoVOList = new LinkedList<>();
         return getParkInfoVOS(parkInfoVOList, result);
+    }
+
+    @Override
+    public Map<String, ParkInfoVO> allLocationMap() {
+        JSONObject result = HttpUtils.sendGet(sparkProperties.getUrl() + ParkConstant.INTERFACE_ALLPARK, null);
+        Map<String, ParkInfoVO> parkInfoVOMap = new HashMap<>();
+        return getParkInfoVOS(parkInfoVOMap, result);
     }
 
     @Override
@@ -307,6 +319,7 @@ public class ParkServiceImpl implements ParkService {
     }
 
     @Override
+    @GlobalTransactional(name = "shared-trad-customer-serv", rollbackFor = Exception.class)
     public SpkCommonResult miniToPay(final String sign, final ParkPayDTO parkPayDTO) {
         // 校验 sign
         if (!invoke(sign, parkPayDTO.getTmpOrderNo())) {
@@ -354,6 +367,18 @@ public class ParkServiceImpl implements ParkService {
             if (StringUtils.isNotBlank(parkPayDTO.getDiscountNo())) {
                 if (deleteDiscountInfo(parkPayDTO.getDiscountNo())) {
                     log.info("金额为0,无需支付,清除卷码 [" + parkPayDTO.getDiscountNo() + "] 缓存成功");
+                }
+            }
+
+            String orderNo = getOrderNo(parking.getProjectNo(), parkPayDTO.getTmpOrderNo());
+            // 将订单状态改为已完成
+            parkingOrder.setStatus("COMPLETE");
+            // 组织数据保存订单
+            if (orderService.saveOrder(parkingOrder, parking, orderNo, "CASH", PAY_TERM_NO, parkingOrder.getDueAmount(), "OFFLINE")) {
+               // 发送开闸指令
+                log.info("订单号: " + orderNo + "更新成功, 发送开闸指令");
+                if (orderService.openCtpDevice(parking.getDeviceNo())) {
+                    log.info("用户ID: " + parking.getUserId() + "订单号: " + orderNo + " 发送开闸指令成功");
                 }
             }
             return SpkCommonResult.success(miniPayVO);
@@ -432,6 +457,7 @@ public class ParkServiceImpl implements ParkService {
                 miniPayVO.setDiscountDelayTime(String.valueOf(DISCOUNT_DELAY_TIME));
 
                 if (saveOrder(miniPayVO.getOutTradeNo())) {
+                    parkingOrder.setStatus("RUNNING");
                     OrderQueryDTO orderQueryDTO = OrderQueryDTO.builder()
                             .orderNo(miniPayVO.getOutTradeNo())
                             .parking(parking)
@@ -703,6 +729,27 @@ public class ParkServiceImpl implements ParkService {
     }
 
     /**
+     * 根据获取BS 数据组织 C 端所需要的数据.
+     * @param parkInfoVOMap {@link List}
+     * @param result  {@link JSONObject}
+     * @return {@link SpkCommonResult}
+     */
+    private Map<String, ParkInfoVO> getParkInfoVOS(final Map<String, ParkInfoVO> parkInfoVOMap, final JSONObject result) {
+        return Optional.ofNullable(result).filter(res -> SUCCESS.equals(res.getString("code"))).map(item -> {
+            JSONArray jsonArray = item.getJSONArray("list");
+            jsonArray.forEach(obj -> {
+                try {
+                    ParkInfoVO parkInfoVO = JSON.parseObject(obj.toString(), ParkInfoVO.class);
+                    parkInfoVOMap.put(parkInfoVO.getProjectNo(), parkInfoVO);
+                } catch (Exception e) {
+                    Arrays.stream(e.getStackTrace()).forEach(err -> log.error(err.toString()));
+                }
+            });
+            return parkInfoVOMap;
+        }).orElse(null);
+    }
+
+    /**
      * save data.
      * @param parkFeeRet {@link ParkFeeRet}
      */
@@ -895,5 +942,34 @@ public class ParkServiceImpl implements ParkService {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 支付库生成订单.
+     * @param projectNo {@link String}
+     * @param tmpOrderNo {@link String}
+     * @return {@link String}
+     */
+    private String getOrderNo(final String projectNo, final String tmpOrderNo) {
+        APIOrderNo apiOrderNo = new APIOrderNo();
+        apiOrderNo.setProjectNo(projectNo);
+        apiOrderNo.setTermInfo(PAY_TERM_NO);
+        apiOrderNo.setBusinessType("0".charAt(0));
+        apiOrderNo.setPayChannel("0".charAt(0));
+        apiOrderNo.setPayType("0".charAt(0));
+        String orderNo = tmpOrderNo;
+        try {
+            String result = ShuBoPaymentUtils.getOrderNo(apiOrderNo);
+            JSONObject jsonObj = JSON.parseObject(result);
+            if (jsonObj.getInteger("status") == 200) {
+                JSONObject resultObj = JSON.parseObject(jsonObj.getString("result"));
+                if (resultObj.getString("result_code").equals("0")) {
+                    orderNo = resultObj.getString("orderNo");
+                }
+            }
+        } catch (Exception e) {
+            log.error("支付库生成订单号异常: " + e.getMessage());
+        }
+        return orderNo;
     }
 }

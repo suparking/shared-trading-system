@@ -15,4 +15,6 @@ public class SharedProperties {
     private Integer corePoolSize;
 
     private Integer queryInterval;
+
+    private Integer orderInterval;
 }

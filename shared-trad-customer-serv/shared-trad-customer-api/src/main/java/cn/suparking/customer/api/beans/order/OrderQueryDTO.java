@@ -1,7 +1,7 @@
 package cn.suparking.customer.api.beans.order;
 
-import cn.suparking.customer.api.beans.parkfee.Parking;
-import cn.suparking.customer.api.beans.parkfee.ParkingOrder;
+import cn.suparking.data.api.parkfee.Parking;
+import cn.suparking.data.api.parkfee.ParkingOrder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +21,8 @@ public class OrderQueryDTO {
 
     // 终端编号
     private String termNo;
+
+    private Integer amount;
 
     // 支付平台方
     private String platForm;

@@ -12,6 +12,7 @@ import cn.suparking.customer.beans.park.RegularLocationDTO;
 import cn.suparking.customer.vo.park.ParkInfoVO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ParkService {
 
@@ -27,6 +28,12 @@ public interface ParkService {
      * @return {@link List}
      */
     List<ParkInfoVO> allLocation();
+
+    /**
+     * 向B端 根据用户ID获取常去的场库.
+     * @return {@link Map}
+     */
+    Map<String, ParkInfoVO> allLocationMap();
 
     /**
      * 查询设备计费信息.

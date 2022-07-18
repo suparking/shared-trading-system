@@ -3,6 +3,7 @@ package cn.suparking.customer.controller.park.service;
 import cn.suparking.customer.api.beans.order.OrderQueryDTO;
 import cn.suparking.customer.concurrent.SparkingThreadFactory;
 import cn.suparking.customer.configuration.properties.SharedProperties;
+import cn.suparking.customer.controller.park.service.impl.OrderServiceImpl;
 import cn.suparking.customer.tools.BeansManager;
 import cn.suparking.customer.tools.ReactiveRedisUtils;
 import com.alibaba.fastjson.JSON;
@@ -34,6 +35,8 @@ public class OrderQueryService {
     private static ScheduledThreadPoolExecutor executor;
 
     private final SharedProperties sharedProperties = BeansManager.getBean("SharedProperties", SharedProperties.class);
+
+    private final OrderServiceImpl orderService = BeansManager.getBean("OrderService", OrderServiceImpl.class);
 
     // 临停订单查询变量.
     private OrderQueryDTO orderQueryDTO;
@@ -138,6 +141,16 @@ public class OrderQueryService {
         result.put("msg", "支付完成");
         if (!saveOrder(orderNo, result.toJSONString())) {
             LOG.info("订单号: " + orderNo + " 订单完成, 存入Redis失败...");
+        }
+        // 通知设备开锁.
+        orderQueryDTO.getParkingOrder().setStatus("COMPLETE");
+        if (orderService.saveOrder(orderQueryDTO.getParkingOrder(), orderQueryDTO.getParking(), orderQueryDTO.getOrderNo(),
+                orderQueryDTO.getPayType(), orderQueryDTO.getTermNo(), orderQueryDTO.getAmount(), orderQueryDTO.getPlatForm())) {
+            LOG.info("订单号: " + orderNo + "更新成功, 发送开闸指令");
+            if (orderService.openCtpDevice(orderQueryDTO.getParking().getDeviceNo())) {
+                LOG.info("用户编号: " + orderQueryDTO.getParking().getUserId() + " 订单号: " + orderNo + "开闸成功");
+            }
+
         }
     }
 
