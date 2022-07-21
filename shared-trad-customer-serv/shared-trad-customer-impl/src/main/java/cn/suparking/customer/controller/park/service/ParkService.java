@@ -121,4 +121,20 @@ public interface ParkService {
      * @return {@link SpkCommonResult}
      */
     SpkCommonResult getDeviceNo(String sign, ProjectInfoQueryDTO projectInfoQueryDTO);
+
+    /**
+     * 根据UnionId 获取未使用优惠券.
+     * @param sign C 端 使用 deviceNo 进行签名制作.
+     * @param unionId {@link String}
+     * @return {@link SpkCommonResult}
+     */
+    SpkCommonResult getDiscountInfoCount(String sign, String unionId);
+
+    /**
+     * 根据UnionId 获取未使用优惠券.
+     * @param sign C 端 使用 deviceNo 进行签名制作.
+     * @param unionId {@link String}
+     * @return {@link SpkCommonResult}
+     */
+    SpkCommonResult getDiscountInfo(String sign, String unionId);
 }

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -197,5 +198,27 @@ public class ParkController {
     @PostMapping("getDeviceNo")
     public SpkCommonResult getDeviceNo(@RequestHeader("sign") final String sign, @RequestBody final ProjectInfoQueryDTO projectInfoQueryDTO) {
         return parkService.getDeviceNo(sign, projectInfoQueryDTO);
+    }
+
+    /**
+     * 根据UnionID或者优惠券信息个数.
+     * @param sign C 端 使用 unionId 进行 签名制作
+     * @param unionId {@link String}
+     * @return {@link SpkCommonResult}
+     */
+    @GetMapping("getDiscountInfoCount")
+    public SpkCommonResult getDiscountInfoCount(@RequestHeader("sign") final String sign, @RequestParam(name = "unionId") final String unionId) {
+        return parkService.getDiscountInfoCount(sign, unionId);
+    }
+
+    /**
+     * 根据UnionID或者优惠券信息.
+     * @param sign C 端 使用 unionId 进行 签名制作
+     * @param unionId {@link String}
+     * @return {@link SpkCommonResult}
+     */
+    @GetMapping("getDiscountInfo")
+    public SpkCommonResult getDiscountInfo(@RequestHeader("sign") final String sign, @RequestParam(name = "unionId") final String unionId) {
+        return parkService.getDiscountInfo(sign, unionId);
     }
 }

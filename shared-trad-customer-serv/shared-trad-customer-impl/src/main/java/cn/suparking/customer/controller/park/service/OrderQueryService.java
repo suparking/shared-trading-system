@@ -1,11 +1,13 @@
 package cn.suparking.customer.controller.park.service;
 
+import cn.suparking.customer.api.beans.discount.DiscountUsedDTO;
 import cn.suparking.customer.api.beans.order.OrderQueryDTO;
 import cn.suparking.customer.concurrent.SparkingThreadFactory;
 import cn.suparking.customer.configuration.properties.SharedProperties;
 import cn.suparking.customer.controller.park.service.impl.OrderServiceImpl;
 import cn.suparking.customer.tools.BeansManager;
 import cn.suparking.customer.tools.ReactiveRedisUtils;
+import cn.suparking.data.api.parkfee.DiscountInfo;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.suparking.payutils.controller.ShuBoPaymentUtils;
@@ -115,17 +117,19 @@ public class OrderQueryService {
         String code = resultObj.getString("result_code");
         if ("0".equals(code)) {
             LOG.info("订单号: " + orderQueryDTO.getOrderNo() + " 查询支付成功，临停单查询结束...");
-            parkingOrderPaySuccess(orderQueryDTO.getOrderNo());
-            // 取消定时任务.
-            FUTUREMAP.get(orderQueryDTO.getOrderNo()).cancel(true);
-            FUTUREMAP.remove(orderQueryDTO.getOrderNo());
+            if (parkingOrderPaySuccess(orderQueryDTO.getOrderNo())) {
+                // 取消定时任务.
+                FUTUREMAP.get(orderQueryDTO.getOrderNo()).cancel(true);
+                FUTUREMAP.remove(orderQueryDTO.getOrderNo());
+            }
         } else if ("AB".equals(code)) {
             LOG.info("订单号: " + orderQueryDTO.getOrderNo() + " 查询支付未成功，临停单查询结束...");
             // 删除Redis 中订单
-            deleteOrder(orderQueryDTO.getOrderNo());
-            // 取消定时任务.
-            FUTUREMAP.get(orderQueryDTO.getOrderNo()).cancel(true);
-            FUTUREMAP.remove(orderQueryDTO.getOrderNo());
+            if (deleteOrder(orderQueryDTO.getOrderNo())) {
+                // 取消定时任务.
+                FUTUREMAP.get(orderQueryDTO.getOrderNo()).cancel(true);
+                FUTUREMAP.remove(orderQueryDTO.getOrderNo());
+            }
         } else {
             LOG.info("订单号: " + orderQueryDTO.getOrderNo() + "查询次数: " + count++ + " 临停单查询返回结果处于支付中...");
         }
@@ -135,7 +139,7 @@ public class OrderQueryService {
      * 支付成功存入Redis.
      * @param orderNo String
      */
-    private void parkingOrderPaySuccess(final String orderNo) {
+    private Boolean parkingOrderPaySuccess(final String orderNo) {
         JSONObject result = new JSONObject();
         result.put("code", "0");
         result.put("msg", "支付完成");
@@ -149,9 +153,33 @@ public class OrderQueryService {
             LOG.info("订单号: " + orderNo + "更新成功, 发送开闸指令");
             if (orderService.openCtpDevice(orderQueryDTO.getParking().getDeviceNo())) {
                 LOG.info("用户编号: " + orderQueryDTO.getParking().getUserId() + " 订单号: " + orderNo + "开闸成功");
+            } else {
+                LOG.info("用户编号: " + orderQueryDTO.getParking().getUserId() + " 订单号: " + orderNo + "开闸失败");
             }
-
+            // 如果存在使用优惠券则进行核销操作.
+            DiscountInfo discountInfo = orderQueryDTO.getParkingOrder().getDiscountInfo();
+            if (Objects.nonNull(discountInfo)) {
+                JSONObject discountInfoObj = new JSONObject();
+                discountInfoObj.put("discountNo", discountInfo.getDiscountNo());
+                discountInfoObj.put("valueType", discountInfo.getValueType());
+                discountInfoObj.put("value", discountInfo.getValue());
+                discountInfoObj.put("quantity", discountInfo.getQuantity());
+                discountInfoObj.put("usedStartTime", discountInfo.getUsedStartTime());
+                discountInfoObj.put("usedEndTime", discountInfo.getUsedEndTime());
+                DiscountUsedDTO discountUsedDTO = DiscountUsedDTO.builder()
+                        .userId(orderQueryDTO.getParking().getUserId().toString())
+                        .orderNo(orderQueryDTO.getParkingOrder().getOrderNo())
+                        .projectNo(orderQueryDTO.getParking().getProjectNo())
+                        .discountInfo(discountInfoObj)
+                        .build();
+                if (orderService.discountUsed(discountUsedDTO)) {
+                    LOG.info("用户ID: " + orderQueryDTO.getParking().getUserId() + " 订单号: " + orderNo + " 优惠券: " + discountInfo.getDiscountNo() + " 核销成功");
+                } else {
+                    LOG.info("用户ID: " + orderQueryDTO.getParking().getUserId() + " 订单号: " + orderNo + " 优惠券: " + discountInfo.getDiscountNo() + " 核销失败");
+                }
+            }
         }
+        return true;
     }
 
     /**

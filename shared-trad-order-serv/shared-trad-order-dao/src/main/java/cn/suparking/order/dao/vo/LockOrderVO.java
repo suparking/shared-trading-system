@@ -25,6 +25,8 @@ public class LockOrderVO {
 
     private String minutes;
 
+    private Integer dueAmount;
+
     // 开始结束时间
     private String time;
 

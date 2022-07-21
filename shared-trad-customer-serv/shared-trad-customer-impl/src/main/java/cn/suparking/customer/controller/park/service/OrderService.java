@@ -1,5 +1,6 @@
 package cn.suparking.customer.controller.park.service;
 
+import cn.suparking.customer.api.beans.discount.DiscountUsedDTO;
 import cn.suparking.data.api.parkfee.Parking;
 import cn.suparking.data.api.parkfee.ParkingOrder;
 
@@ -19,4 +20,18 @@ public interface OrderService {
     Boolean saveOrder(ParkingOrder parkingOrder, Parking parking, String orderNo, String payType,
                       String termNo, Integer amount, String plateForm);
 
+    /**
+     * 发送开闸指令.
+     * @param deviceNo {@link String} 设备编号
+     * @return {@link Boolean}
+     */
+    Boolean openCtpDevice(String deviceNo);
+
+
+    /**
+     * 核销优惠券.
+     * @param discountUsedDTO {@link DiscountUsedDTO}
+     * @return {@link Boolean}
+     */
+    Boolean discountUsed(DiscountUsedDTO discountUsedDTO);
 }

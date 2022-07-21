@@ -25,6 +25,7 @@ public class ParkOrderToLockOrderVO {
                     .minutes(DateUtils.formatSeconds((long) (item.getParkingMinutes() * 60)))
                     .time(DateUtils.secondToDateTime(item.getBeginTime()) + " ~ " + DateUtils.secondToDateTime(item.getEndTime()))
                     .payTime(DateUtils.secondToDateTime(item.getPayTime()))
+                    .dueAmount(item.getDueAmount())
                     .invoiceState(item.getInvoiceState())
                     .refundState(item.getRefundState())
                     .build();

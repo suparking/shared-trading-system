@@ -48,6 +48,9 @@ public class ParkConstant {
      */
     public static final String INTERFACE_GETDEVICENO = "/map/getDeviceNo";
 
+    // 核销优惠券方法名
+    public static final String INTERFACE_DISCOUNT_USED = "/used";
+
     // CTP 设备控制
     public static final String INTERFACE_CTP_CONTROL_DEVICE = "/ctp/ctpControlCmd";
 

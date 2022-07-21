@@ -14,6 +14,7 @@ import cn.suparking.customer.api.beans.ParkPayDTO;
 import cn.suparking.customer.api.beans.ProjectInfoQueryDTO;
 import cn.suparking.customer.api.beans.ProjectQueryDTO;
 import cn.suparking.customer.api.beans.discount.DiscountDTO;
+import cn.suparking.customer.api.beans.discount.DiscountUsedDTO;
 import cn.suparking.customer.api.beans.order.OrderDTO;
 import cn.suparking.customer.api.beans.order.OrderQueryDTO;
 import cn.suparking.customer.api.constant.ParkConstant;
@@ -37,6 +38,7 @@ import cn.suparking.customer.vo.park.ParkPayVO;
 import cn.suparking.data.api.beans.ParkingLockModel;
 import cn.suparking.data.api.beans.ProjectConfig;
 import cn.suparking.data.api.parkfee.DiscountCustomer;
+import cn.suparking.data.api.parkfee.DiscountInfo;
 import cn.suparking.data.api.parkfee.ParkFeeRet;
 import cn.suparking.data.api.parkfee.Parking;
 import cn.suparking.data.api.parkfee.ParkingOrder;
@@ -379,6 +381,30 @@ public class ParkServiceImpl implements ParkService {
                 log.info("订单号: " + orderNo + "更新成功, 发送开闸指令");
                 if (orderService.openCtpDevice(parking.getDeviceNo())) {
                     log.info("用户ID: " + parking.getUserId() + "订单号: " + orderNo + " 发送开闸指令成功");
+                } else {
+                    log.info("用户ID: " + parking.getUserId() + "订单号: " + orderNo + " 发送开闸指令失败");
+                }
+                // 如果存在使用优惠券则进行核销操作.
+                DiscountInfo discountInfo = parkingOrder.getDiscountInfo();
+                if (Objects.nonNull(discountInfo)) {
+                    JSONObject discountInfoObj = new JSONObject();
+                    discountInfoObj.put("discountNo", discountInfo.getDiscountNo());
+                    discountInfoObj.put("valueType", discountInfo.getValueType());
+                    discountInfoObj.put("value", discountInfo.getValue());
+                    discountInfoObj.put("quantity", discountInfo.getQuantity());
+                    discountInfoObj.put("usedStartTime", discountInfo.getUsedStartTime());
+                    discountInfoObj.put("usedEndTime", discountInfo.getUsedEndTime());
+                    DiscountUsedDTO discountUsedDTO = DiscountUsedDTO.builder()
+                            .userId(parking.getUserId().toString())
+                            .orderNo(orderNo)
+                            .projectNo(parking.getProjectNo())
+                            .discountInfo(discountInfoObj)
+                            .build();
+                    if (orderService.discountUsed(discountUsedDTO)) {
+                        log.info("用户ID: " + parking.getUserId() + " 订单号: " + orderNo + " 优惠券: " + discountInfo.getDiscountNo() + " 核销成功");
+                    } else {
+                        log.info("用户ID: " + parking.getUserId() + " 订单号: " + orderNo + " 优惠券: " + discountInfo.getDiscountNo() + " 核销失败");
+                    }
                 }
             }
             return SpkCommonResult.success(miniPayVO);
@@ -464,6 +490,7 @@ public class ParkServiceImpl implements ParkService {
                             .parkingOrder(parkingOrder)
                             .payType(PAY_TYPE)
                             .termNo(PAY_TERM_NO)
+                            .amount(parkingOrder.getDueAmount())
                             .platForm(miniPayVO.getPlatForm())
                             .discountNo(parkPayDTO.getDiscountNo())
                             .build();
@@ -659,6 +686,16 @@ public class ParkServiceImpl implements ParkService {
         JSONObject result = HttpUtils.sendPost(sparkProperties.getUrl() + ParkConstant.INTERFACE_GETDEVICENO, request.toJSONString());
         return Optional.ofNullable(result).filter(res -> SUCCESS.equals(res.getString("code"))).map(item ->
                 SpkCommonResult.success(JSON.parseObject(item.getString("data"), DeviceVO.class))).orElseGet(() -> SpkCommonResult.error("获取设备号失败"));
+    }
+
+    @Override
+    public SpkCommonResult getDiscountInfoCount(final String sign, final String unionId) {
+        return SpkCommonResult.success(getDiscountInfoListByUnionId(null, unionId));
+    }
+
+    @Override
+    public SpkCommonResult getDiscountInfo(final String sign, final String unionId) {
+        return SpkCommonResult.success(getDiscountInfoListByUnionId(null, unionId));
     }
 
     private String sendRPCQueryFee(final JSONObject params) {
@@ -866,14 +903,18 @@ public class ParkServiceImpl implements ParkService {
      */
     private List<DiscountInfoDO> getDiscountInfoListByUnionId(final String projectNo, final String unionId) {
         Map<String, Object> params = new HashMap<>();
-        params.put("projectNo", projectNo);
+        String method = "discountUser/all";
+        if (StringUtils.isNotBlank(projectNo)) {
+            params.put("projectNo", projectNo);
+            method = "discountUser/list";
+        }
         params.put("appType", "wx");
         params.put("appUserId", unionId);
         params.put("listType", "notUse");
         log.info("请求未使用优惠券参数: [ " + params + " ]");
         try {
             List<DiscountInfoDO> discountInfoDOList = new ArrayList<>();
-            JSONObject result = HttpUtils.sendGet(sharedProperties.getDiscountUrl() + "discountUser/list", params);
+            JSONObject result = HttpUtils.sendGet(sharedProperties.getDiscountUrl() + method, params);
             if (Objects.nonNull(result)) {
                 List<JSONObject> discountObjList = JSONObject.parseArray(result.getString("notUse_list"), JSONObject.class);
                 discountObjList.forEach(item -> {
@@ -881,9 +922,15 @@ public class ParkServiceImpl implements ParkService {
                     DiscountInfoDO discountInfoDO = DiscountInfoDO.builder()
                             .discountNo(discount.getString("discountNo"))
                             .value(discount.getInteger("value"))
-                            .quantity(1)
+                            .quantity(discount.getInteger("maxAvailableCount") - discount.getInteger("usedCount"))
+                            .usedProjectNo(discount.getString("usedProjectNo"))
+                            .expireDate(DateUtils.secondToDateTime(discount.getLong("expireDate")))
                             .valueType(discount.getString("valueType"))
                             .build();
+                    JSONArray projectNames = item.getJSONArray("projectName");
+                    if (Objects.nonNull(projectNames)) {
+                        discountInfoDO.setProjectNos(projectNames.toString());
+                    }
                     discountInfoDOList.add(discountInfoDO);
                 });
             }

@@ -1,7 +1,6 @@
 package cn.suparking.order.service.impl;
 
 import cn.suparking.common.api.beans.SpkCommonResult;
-import cn.suparking.common.api.utils.DateUtils;
 import cn.suparking.data.api.parkfee.ChargeDetail;
 import cn.suparking.data.api.parkfee.ChargeInfo;
 import cn.suparking.data.api.parkfee.DiscountInfo;
@@ -17,9 +16,11 @@ import cn.suparking.order.dao.convert.ParkOrderToLockOrderVO;
 import cn.suparking.order.dao.entity.ChargeDetailDO;
 import cn.suparking.order.dao.entity.ChargeInfoDO;
 import cn.suparking.order.dao.entity.DiscountInfoDO;
+import cn.suparking.order.dao.entity.ParkingOrderDO;
 import cn.suparking.order.dao.mapper.ChargeDetailMapper;
 import cn.suparking.order.dao.mapper.ChargeInfoMapper;
 import cn.suparking.order.dao.mapper.DiscountInfoMapper;
+import cn.suparking.order.dao.mapper.ParkingOrderMapper;
 import cn.suparking.order.dao.vo.ChargeInfoVO;
 import cn.suparking.order.dao.vo.LockOrderVO;
 import cn.suparking.order.dao.vo.ParkingOrderVO;
@@ -27,8 +28,6 @@ import cn.suparking.order.service.ChargeDetailService;
 import cn.suparking.order.service.ChargeInfoService;
 import cn.suparking.order.service.DiscountInfoService;
 import cn.suparking.order.service.ParkingOrderService;
-import cn.suparking.order.dao.entity.ParkingOrderDO;
-import cn.suparking.order.dao.mapper.ParkingOrderMapper;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -237,6 +236,7 @@ public class ParkingOrderServiceImpl implements ParkingOrderService {
                 .expireTime(parkingOrder.getExpireTime())
                 .invoiceState(parkingOrder.getInvoiceState())
                 .refundState(parkingOrder.getRefundState())
+                .status(parkingOrder.getStatus())
                 .projectNo(parkingOrder.getProjectNo())
                 .creator("system")
                 .build();
