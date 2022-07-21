@@ -4,6 +4,7 @@ import cn.suparking.common.api.beans.SpkCommonResult;
 import cn.suparking.data.api.beans.ParkConfigDTO;
 import cn.suparking.data.api.beans.ParkingLockModel;
 import cn.suparking.data.api.beans.ProjectConfig;
+import cn.suparking.data.api.parkfee.Parking;
 import cn.suparking.data.api.query.ParkEventQuery;
 import cn.suparking.data.api.query.ParkQuery;
 import cn.suparking.data.api.query.ParkingQueryDTO;
@@ -17,6 +18,8 @@ import cn.suparking.data.service.ParkingService;
 import cn.suparking.data.service.ParkingTriggerService;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shardingsphere.transaction.annotation.ShardingSphereTransactionType;
+import org.apache.shardingsphere.transaction.core.TransactionType;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,6 +65,17 @@ public class ParkingController {
      */
     public SpkCommonResult searchBoardStatus(@RequestBody final JSONObject params) {
         return ctpDataService.searchBoardStatus(params);
+    }
+
+    /**
+     * 更新parking.
+     * @param parking {@link Parking}
+     * @return {@link Boolean}
+     */
+    @PostMapping("/parking")
+    @ShardingSphereTransactionType(TransactionType.BASE)
+    public Boolean createAndUpdateParking(@RequestBody final Parking parking) {
+        return ctpDataService.createAndUpdateParking(parking);
     }
 
     /**
@@ -160,7 +174,7 @@ public class ParkingController {
      */
     @GetMapping("/findById")
     public SpkCommonResult findById(@RequestParam String id) {
-        ParkingDO parkingDO = parkingService.findById(id);
+        ParkingDO parkingDO = parkingService.findById(Long.valueOf(id));
         return SpkCommonResult.success(parkingDO);
     }
 

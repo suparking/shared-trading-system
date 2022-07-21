@@ -42,13 +42,14 @@ public class ChargeDetailDO implements Comparable<ChargeDetailDO> {
 
     /**
      * build ChargeDetailDO.
+     *
      * @param chargeDetailDTO {@link ChargeDetailDTO}
      * @return {@link ChargeDetailDO}
      */
     public static ChargeDetailDO buildChargeDetailDO(final ChargeDetailDTO chargeDetailDTO) {
         return Optional.ofNullable(chargeDetailDTO).map(item -> {
             ChargeDetailDO chargeDetailDO = ChargeDetailDO.builder()
-                    .chargeInfoId(Long.valueOf(item.getChangeInfoId()))
+                    .chargeInfoId(Long.valueOf(item.getChargeInfoId()))
                     .chargeTypeName(item.getChargeTypeName())
                     .beginTime(item.getBeginTime())
                     .endTime(item.getEndTime())

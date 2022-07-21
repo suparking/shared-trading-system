@@ -65,12 +65,8 @@ public class CarGroupOrderController {
      * @param carGroupOrderDTO 合约订单信息
      * @return Integer
      */
-    @PostMapping("/createCarGroupOrder")
-    public SpkCommonResult createCarGroupOrder(@Valid @RequestBody final CarGroupOrderDTO carGroupOrderDTO) {
-        Integer count = carGroupOrderService.createOrUpdate(carGroupOrderDTO);
-        if (count > 0) {
-            return SpkCommonResult.success();
-        }
-        return SpkCommonResult.error("操作失败");
+    @PostMapping("")
+    public Integer createCarGroupOrder(@Valid @RequestBody final CarGroupOrderDTO carGroupOrderDTO) {
+        return carGroupOrderService.createOrUpdate(carGroupOrderDTO);
     }
 }

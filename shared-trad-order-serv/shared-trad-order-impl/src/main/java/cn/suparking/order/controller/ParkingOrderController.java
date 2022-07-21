@@ -3,12 +3,16 @@ package cn.suparking.order.controller;
 import cn.suparking.common.api.beans.SpkCommonResult;
 import cn.suparking.common.api.utils.SpkCommonAssert;
 import cn.suparking.common.api.utils.SpkCommonResultMessage;
+import cn.suparking.order.api.beans.OrderDTO;
 import cn.suparking.order.api.beans.ParkingOrderDTO;
 import cn.suparking.order.api.beans.ParkingOrderQueryDTO;
 import cn.suparking.order.api.beans.ParkingQuery;
 import cn.suparking.order.dao.entity.ParkingOrderDO;
+import cn.suparking.order.dao.vo.LockOrderVO;
 import cn.suparking.order.service.ParkingOrderService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shardingsphere.transaction.annotation.ShardingSphereTransactionType;
+import org.apache.shardingsphere.transaction.core.TransactionType;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,8 +63,8 @@ public class ParkingOrderController {
         return Optional.ofNullable(parkingOrderDTO)
                 .map(item -> {
                     SpkCommonAssert.notBlank(item.getOrderNo(), "订单号不能为空");
-                    Integer count = parkingOrderService.createOrUpdate(item);
-                    return SpkCommonResult.success(SpkCommonResultMessage.CREATE_SUCCESS, count);
+                    Long id = parkingOrderService.createOrUpdate(item);
+                    return SpkCommonResult.success(SpkCommonResultMessage.CREATE_SUCCESS, id);
                 }).orElseGet(() -> SpkCommonResult.error("订单信息不存在"));
     }
 
@@ -71,11 +76,27 @@ public class ParkingOrderController {
      * @return {@linkplain SpkCommonResult}
      */
     @GetMapping("/regularLocations")
-    public SpkCommonResult detailParkingOrder(@RequestParam final Long userId, @RequestParam final Integer count) {
-        List<String> projectNoList = parkingOrderService.detailParkingOrder(userId, count);
+    public SpkCommonResult regularLocations(@RequestParam final Long userId, @RequestParam final Integer count) {
+        List<String> projectNoList = parkingOrderService.regularLocations(userId, count);
         return Optional.ofNullable(projectNoList)
                 .map(item -> SpkCommonResult.success(SpkCommonResultMessage.DETAIL_SUCCESS, item))
                 .orElseGet(() -> SpkCommonResult.error("订单信息不存在"));
+    }
+
+    /**
+     * 生成订单数据.
+     *
+     * @param orderDTO {@link OrderDTO}
+     * @return {@link Boolean}
+     */
+    @PostMapping("/parkingOrder")
+    @ShardingSphereTransactionType(TransactionType.BASE)
+    public Boolean createAndUpdateParkingOrder(@Valid @RequestBody final OrderDTO orderDTO) {
+        SpkCommonAssert.notNull(orderDTO.getParkingOrder(), "Order信息不能为null");
+        SpkCommonAssert.notBlank(orderDTO.getPayType(), "支付类型信息不能为空");
+        SpkCommonAssert.notBlank(orderDTO.getTermNo(), "支付终端不能为空");
+        SpkCommonAssert.notBlank(orderDTO.getPlateForm(), "支付渠道不能为空");
+        return parkingOrderService.createAndUpdateParkingOrder(orderDTO);
     }
 
     /**
@@ -140,5 +161,16 @@ public class ParkingOrderController {
                 .map(item -> {
                     return parkingOrderService.list(item);
                 }).orElseGet(() -> SpkCommonResult.error("订单信息不存在"));
+    }
+
+    /**
+     * 根据用户ID 时间范围查询订单信息.
+     *
+     * @param parkingOrderQueryDTO {@link ParkingOrderQueryDTO}
+     * @return {@link List}
+     */
+    @PostMapping("/findOrderByUserId")
+    public LinkedList<LockOrderVO> findOrderByUserId(@RequestBody final ParkingOrderQueryDTO parkingOrderQueryDTO) {
+        return parkingOrderService.findLockOrderByUserId(parkingOrderQueryDTO);
     }
 }

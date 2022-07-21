@@ -59,7 +59,7 @@ spring:
         # [注意]需要在nacos-server中创建好namespace,然后把id copy进来
         namespace: dev
         # [注意] 两个服务如果存在上下游调用关系,必须配置相同的group才能发起访问
-        group: myGroupZ
+        group: myGroup
         # 向注册中心注册服务,默认为true
         # 如果只消费服务,不作为服务提供方,倒是可以设置为false,减少开销
         register-enabled: false
@@ -73,6 +73,15 @@ spring:
     username: shared
     password: shared2019
     exchange: spk.shared
+    consumer-prefetch: 5
+    concurrent-consumer: 2
+    enable: true
+  parkmq:
+    host: ms.suparking.cn
+    port: 5672
+    username: shared
+    password: shared2019
+    exchange: spk.biz
     consumer-prefetch: 5
     concurrent-consumer: 2
     enable: true
@@ -141,6 +150,17 @@ pagehelper:
   params: count=countSql
 sparking:
   bs:
-    url: http://192.168.1.133:10088/spms/api/wxapp
+    url: http://192.168.1.9:10088/spms/api/wxapp
   secret: 9fdfff5ec6ac41c1a83269241e09f4ce
-  discountUrl: http://discount.suparking.cn:25863/
+#  discountUrl: http://discount.suparking.cn:25863/
+  discountUrl: http://localhost:10086/
+  corePoolSize: 16
+  queryInterval: 1
+  orderInterval: 90
+  mini:
+    appid: wx30b06cff779215bb
+    secret: 919be359c7f692d66bde05ad6c34a95d
+  adapter:
+    url: http://localhost:25902/sparking
+  discount:
+    url: http://localhost:10086/discount

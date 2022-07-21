@@ -5,6 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.sql.Timestamp;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -82,9 +86,15 @@ public class ParkingOrderQueryDTO {
     //支付id
     private String payParkingId;
 
-    //用户id
-    private Long userId;
-
     //用户手机号
     private String phone;
+
+    //用户id
+    @NotNull
+    @NotBlank
+    private String userId;
+
+    private Timestamp startDate;
+
+    private Timestamp endDate;
 }

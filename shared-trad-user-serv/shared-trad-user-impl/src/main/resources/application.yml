@@ -240,7 +240,7 @@ spring:
         # [注意]需要在nacos-server中创建好namespace,然后把id copy进来
         namespace: dev
         # [注意] 两个服务如果存在上下游调用关系,必须配置相同的group才能发起访问
-        group: myGroupZ
+        group: myGroup
         # 向注册中心注册服务,默认为true925  10 20
         # 如果只消费服务,不作为服务提供方,倒是可以设置为false,减少开销
         register-enabled: true

@@ -22,12 +22,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.retry.policy.AlwaysRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
 import javax.annotation.Resource;
 
-@Configuration
+@Configuration("RabbitMqConfiguration")
 @ConditionalOnProperty(name = "spring.rabbitmq.enable", matchIfMissing = true)
 public class RabbitMqConfiguration {
 
@@ -38,9 +39,11 @@ public class RabbitMqConfiguration {
 
     /**
      * MQ Factory.
+     *
      * @return {@link CachingConnectionFactory}
      */
     @Bean("MQCloudConnectionFactory")
+    @Primary
     public CachingConnectionFactory cloudConnectionFactory() {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(
                 rabbitmqProperties.getHost(), rabbitmqProperties.getPort());
@@ -75,6 +78,7 @@ public class RabbitMqConfiguration {
 
     /**
      * Cloud Admin.
+     *
      * @param template {@link RabbitTemplate}
      * @return {@link AmqpAdmin}
      */
@@ -89,11 +93,12 @@ public class RabbitMqConfiguration {
 
     /**
      * cloud exchange.
+     *
      * @param admin {@link AmqpAdmin}
      * @return {@link TopicExchange}
      */
     @Bean("MQCloudExchange")
-    public TopicExchange cloudExchange(@Qualifier("MQCloudAMQPAdmin")final AmqpAdmin admin) {
+    public TopicExchange cloudExchange(@Qualifier("MQCloudAMQPAdmin") final AmqpAdmin admin) {
         TopicExchange exchange = new TopicExchange(rabbitmqProperties.getExchange());
         exchange.setShouldDeclare(false);
         return exchange;
@@ -101,6 +106,7 @@ public class RabbitMqConfiguration {
 
     /**
      * cloud template.
+     *
      * @param factory {@link CachingConnectionFactory}
      * @return {@link RabbitTemplate}
      */
@@ -111,6 +117,7 @@ public class RabbitMqConfiguration {
 
     /**
      * cloud Queue.
+     *
      * @param admin {@link AmqpAdmin}
      * @return {@link Queue}
      */
@@ -125,15 +132,16 @@ public class RabbitMqConfiguration {
 
     /**
      * cloud binding.
-     * @param admin {@link AmqpAdmin}
-     * @param queue {@link Queue}
+     *
+     * @param admin    {@link AmqpAdmin}
+     * @param queue    {@link Queue}
      * @param exchange {@link TopicExchange}
      * @return {@link Binding}
      */
     @Bean("MQCloudBinding")
-    public Binding cloudBinding(@Qualifier("MQCloudAMQPAdmin")final AmqpAdmin admin,
-                                @Qualifier("MQCloudQueue")final Queue queue,
-                                @Qualifier("MQCloudExchange")final TopicExchange exchange) {
+    public Binding cloudBinding(@Qualifier("MQCloudAMQPAdmin") final AmqpAdmin admin,
+                                @Qualifier("MQCloudQueue") final Queue queue,
+                                @Qualifier("MQCloudExchange") final TopicExchange exchange) {
         Binding binding = BindingBuilder.bind(queue).to(exchange).with("*.shared.#");
         binding.setAdminsThatShouldDeclare(admin);
         binding.setShouldDeclare(true);
@@ -142,16 +150,17 @@ public class RabbitMqConfiguration {
 
     /**
      * cloud container.
+     *
      * @param connectionFactory {@link CachingConnectionFactory}
-     * @param admin {@link AmqpAdmin}
-     * @param queue {@link Queue}
+     * @param admin             {@link AmqpAdmin}
+     * @param queue             {@link Queue}
      * @return {@link DirectMessageListenerContainer}
      */
     @Bean("MQCloudMessageListenerContainer")
     public DirectMessageListenerContainer cloudMessageListenerContainer(
-            @Qualifier("MQCloudConnectionFactory")final CachingConnectionFactory connectionFactory,
-            @Qualifier("MQCloudAMQPAdmin")final AmqpAdmin admin,
-            @Qualifier("MQCloudQueue")final Queue queue
+            @Qualifier("MQCloudConnectionFactory") final CachingConnectionFactory connectionFactory,
+            @Qualifier("MQCloudAMQPAdmin") final AmqpAdmin admin,
+            @Qualifier("MQCloudQueue") final Queue queue
     ) {
         DirectMessageListenerContainer container = new DirectMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);

@@ -70,4 +70,11 @@ public interface ParkingOrderMapper {
      * @return Integer
      */
     List<ParkingOrderVO> list(ParkingOrderQueryDTO parkingOrderQueryDTO);
+
+    /**
+     * 查找某个用户指定时间内的订单.
+     * @param params {@link Map}
+     * @return {@link List}
+     */
+    List<ParkingOrderDO> findOrderByUserId(Map<String, Object> params);
 }

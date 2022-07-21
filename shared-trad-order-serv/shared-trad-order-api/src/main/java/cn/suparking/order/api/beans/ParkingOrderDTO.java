@@ -44,7 +44,7 @@ public class ParkingOrderDTO implements Serializable {
 
     private Integer aggregatedMaxAmount;
 
-    private Integer parkingMinutes;
+    private Long parkingMinutes;
 
     private Integer totalAmount;
 
@@ -81,6 +81,8 @@ public class ParkingOrderDTO implements Serializable {
     private Timestamp invoiceTime;
 
     private String refundState;
+
+    private String status;
 
     private String projectNo;
 
