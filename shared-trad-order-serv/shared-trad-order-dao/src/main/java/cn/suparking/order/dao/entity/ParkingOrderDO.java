@@ -77,6 +77,8 @@ public class ParkingOrderDO extends BaseDO {
 
     private String invoiceState;
 
+    private Timestamp invoiceTime;
+
     private String refundState;
 
     private String projectNo;
@@ -122,6 +124,7 @@ public class ParkingOrderDO extends BaseDO {
                     .operator(item.getOperator())
                     .expireTime(item.getExpireTime())
                     .invoiceState(item.getInvoiceState())
+                    .invoiceTime(item.getInvoiceTime())
                     .refundState(item.getRefundState())
                     .projectNo(item.getProjectNo())
                     .creator(item.getCreator())

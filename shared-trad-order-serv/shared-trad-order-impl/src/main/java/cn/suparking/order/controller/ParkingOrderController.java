@@ -4,6 +4,7 @@ import cn.suparking.common.api.beans.SpkCommonResult;
 import cn.suparking.common.api.utils.SpkCommonAssert;
 import cn.suparking.common.api.utils.SpkCommonResultMessage;
 import cn.suparking.order.api.beans.ParkingOrderDTO;
+import cn.suparking.order.api.beans.ParkingOrderQueryDTO;
 import cn.suparking.order.api.beans.ParkingQuery;
 import cn.suparking.order.dao.entity.ParkingOrderDO;
 import cn.suparking.order.service.ParkingOrderService;
@@ -124,6 +125,20 @@ public class ParkingOrderController {
                 .map(item -> {
                     SpkCommonAssert.notNull(item.getUserIds(), "用户信息不能为空");
                     return parkingOrderService.findNextAggregateBeginTime(parkingQuery);
+                }).orElseGet(() -> SpkCommonResult.error("订单信息不存在"));
+    }
+
+    /**
+     * 根据条件查询订单.
+     *
+     * @param parkingOrderQueryDTO {@link ParkingOrderQueryDTO}
+     * @return {@link SpkCommonResult}
+     */
+    @PostMapping("/list")
+    public SpkCommonResult list(@Valid @RequestBody final ParkingOrderQueryDTO parkingOrderQueryDTO) {
+        return Optional.ofNullable(parkingOrderQueryDTO)
+                .map(item -> {
+                    return parkingOrderService.list(item);
                 }).orElseGet(() -> SpkCommonResult.error("订单信息不存在"));
     }
 }

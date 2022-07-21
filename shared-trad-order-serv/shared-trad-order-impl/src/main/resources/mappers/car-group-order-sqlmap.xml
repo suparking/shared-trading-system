@@ -3,6 +3,7 @@
 <mapper namespace="cn.suparking.order.dao.mapper.CarGroupOrderMapper">
     <resultMap id="BaseResultMap" type="cn.suparking.order.dao.entity.CarGroupOrderDO">
         <result column="id" jdbcType="BIGINT" property="id" />
+        <result column="user_id" jdbcType="BIGINT" property="userId" />
         <result column="order_no" jdbcType="VARCHAR" property="orderNo" />
         <result column="car_group_id" jdbcType="VARCHAR" property="carGroupId" />
         <result column="car_type_id" jdbcType="VARCHAR" property="carTypeId" />
@@ -33,6 +34,7 @@
 
     <resultMap id="BaseResultMap1" type="cn.suparking.order.dao.vo.CarGroupOrderVO">
         <result column="id" jdbcType="BIGINT" property="id" />
+        <result column="user_id" jdbcType="VARCHAR" property="userId" />
         <result column="order_no" jdbcType="VARCHAR" property="orderNo" />
         <result column="car_group_id" jdbcType="VARCHAR" property="carGroupId" />
         <result column="car_type_id" jdbcType="VARCHAR" property="carTypeId" />
@@ -70,7 +72,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, order_no, car_group_id, car_type_id,
+        id, user_id, order_no, car_group_id, car_type_id,
 		car_type_name, protocol_id, protocol_name, begin_date, end_date,
 		total_amount, discounted_amount, due_amount, pay_channel,
 		pay_type, user_name, user_mobile, order_state, invoice_state,
@@ -92,7 +94,11 @@
             spk_car_group_order AS a
         LEFT JOIN
             spk_car_group_refund_order as b
+        ON a.car_group_id = b.car_group_id
         <where>
+            <if test="userId != null">
+                AND a.user_id = #{userId,jdbcType=BIGINT}
+            </if>
             <if test="projectNos != null and projectNos.size > 0">
                 AND project_no in
                 <foreach collection="projectNos" item="projectNo" index="index" open="(" close=")" separator=",">
@@ -115,10 +121,10 @@
                 AND a.pay_type = #{payType,jdbcType=VARCHAR}
             </if>
             <if test="beginTime != null">
-                AND a.date_created &gt;= #{beginTime,jdbcType=VARCHAR}
+                AND a.date_created &gt;= #{beginTime,jdbcType=BIGINT}
             </if>
             <if test="endTime != null">
-                AND a.date_created &lt;= #{endTime,jdbcType=VARCHAR}
+                AND a.date_created &lt;= #{endTime,jdbcType=BIGINT}
             </if>
             <if test="carGroupId != null">
                 AND a.car_group_id = #{carGroupId,jdbcType=VARCHAR}
@@ -138,6 +144,7 @@
     <select id="list" parameterType="cn.suparking.order.api.beans.CarGroupOrderQueryDTO" resultMap="BaseResultMap1">
         SELECT
             a.id,
+            a.user_id,
             a.order_no,
             a.car_group_id,
             a.car_type_id,
@@ -175,6 +182,9 @@
         LEFT JOIN
             spk_car_group_refund_order as b
         <where>
+            <if test="userId != null">
+                AND a.user_id = #{userId,jdbcType=BIGINT}
+            </if>
             <if test="projectNos != null and projectNos.size > 0">
                 AND project_no in
                 <foreach collection="projectNos" item="projectNo" index="index" open="(" close=")" separator=",">
@@ -223,6 +233,9 @@
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="id != null">
                 id,
+            </if>
+            <if test="userId != null">
+                user_id,
             </if>
             <if test="orderNo != null">
                 order_no,
@@ -306,6 +319,9 @@
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
                 #{id,jdbcType=BIGINT},
+            </if>
+            <if test="userId != null">
+                #{userId,jdbcType=BIGINT},
             </if>
             <if test="orderNo != null">
                 #{orderNo,jdbcType=VARCHAR},
@@ -442,7 +458,7 @@
             date_updated = #{dateUpdated,jdbcType=TIMESTAMP}  </if>
     </set>
         WHERE
-        id = #{id,jdbcType=BIGINT}
+        id = #{id,jdbcType=BIGINT} and user_id = #{userId,jdbcType=BIGINT}
     </update>
 
 </mapper>

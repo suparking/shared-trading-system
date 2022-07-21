@@ -25,6 +25,22 @@ public class CarGroupOrderQueryDTO {
      */
     private String LoginUserName;
 
+    private String orderState;
+
+    private String payType;
+
+    private String carGroupId;
+
+    private String orderType;
+
+    private Long invoiceBeginTime;
+
+    private Long invoiceEndTime;
+
+    private Long beginTime;
+
+    private Long endTime;
+
     /**
      * 搜索关键字.
      */

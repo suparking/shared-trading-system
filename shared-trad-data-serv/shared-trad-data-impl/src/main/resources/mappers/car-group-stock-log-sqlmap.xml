@@ -37,6 +37,7 @@
 				AND stock_id = #{stockId,jdbcType=VARCHAR}
 			</if>
 		</where>
+		ORDER BY id DESC
 	</select>
 
 	<insert id="insert" parameterType="cn.suparking.data.dao.mapper.CarGroupStockOperateRecordMapper">

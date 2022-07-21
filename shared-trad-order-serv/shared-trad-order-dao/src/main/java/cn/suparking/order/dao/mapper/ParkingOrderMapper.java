@@ -1,6 +1,9 @@
 package cn.suparking.order.dao.mapper;
 
+import cn.suparking.order.api.beans.ParkingOrderQueryDTO;
+import cn.suparking.order.dao.entity.DiscountInfoDO;
 import cn.suparking.order.dao.entity.ParkingOrderDO;
+import cn.suparking.order.dao.vo.ParkingOrderVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -59,4 +62,12 @@ public interface ParkingOrderMapper {
      * @return {@link List}
      */
     ParkingOrderDO findNextAggregateBeginTime(Map<String, Object> params);
+
+    /**
+     * 根据条件查询订单.
+     *
+     * @param parkingOrderQueryDTO 订单详情信息
+     * @return Integer
+     */
+    List<ParkingOrderVO> list(ParkingOrderQueryDTO parkingOrderQueryDTO);
 }

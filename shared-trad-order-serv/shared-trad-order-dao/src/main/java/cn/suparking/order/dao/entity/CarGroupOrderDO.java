@@ -21,6 +21,8 @@ public class CarGroupOrderDO extends BaseDO {
 
     private static final long serialVersionUID = -7899903855843591165L;
 
+    private Long userId;
+
     private String orderNo;
 
     private String carGroupId;

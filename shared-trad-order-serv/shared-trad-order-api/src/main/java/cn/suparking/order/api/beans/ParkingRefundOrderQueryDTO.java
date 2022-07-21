@@ -9,21 +9,20 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ParkingRefundOrderDTO implements Serializable {
+public class ParkingRefundOrderQueryDTO implements Serializable {
 
     private static final long serialVersionUID = 7265354678951677352L;
 
     private String id;
 
-    private String userId;
+    private Long userId;
 
-    @NotNull
-    @NotBlank
     private String orderNo;
 
     private String payOrderNo;
@@ -49,4 +48,6 @@ public class ParkingRefundOrderDTO implements Serializable {
     private Timestamp dateCreated;
 
     private Timestamp dateUpdated;
+
+    private List<String> orderStateList;
 }

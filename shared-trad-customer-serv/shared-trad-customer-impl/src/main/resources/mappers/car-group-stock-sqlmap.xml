@@ -62,8 +62,16 @@
 		WHERE
 			id = #{id,jdbcType=BIGINT}
 	</select>
+    <select id="findByProtocolId" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List"></include>
+		FROM
+		spk_car_group_stock
+		WHERE
+		protocol_id = #{protocolId,jdbcType=VARCHAR}
+	</select>
 
-	<insert id="insert" parameterType="cn.suparking.customer.dao.entity.CarGroupStockDO">
+    <insert id="insert" parameterType="cn.suparking.customer.dao.entity.CarGroupStockDO">
 		INSERT INTO spk_car_group_stock
 		<trim prefix="(" suffix=")" suffixOverrides=",">
 			id,

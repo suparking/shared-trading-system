@@ -40,4 +40,12 @@ public interface CarGroupStockMapper {
      * @return {@linkplain CarGroupStockDO}
      */
     CarGroupStockDO findById(@Param("id") Long id);
+
+    /**
+     * 根据协议id查找合约库存.
+     *
+     * @param protocolId 协议id
+     * @return {@linkplain CarGroupStockDO}
+     */
+    CarGroupStockDO findByProtocolId(@Param("protocolId") String protocolId);
 }

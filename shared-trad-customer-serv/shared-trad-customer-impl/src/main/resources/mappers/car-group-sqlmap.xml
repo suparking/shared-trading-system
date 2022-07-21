@@ -215,6 +215,14 @@
         WHERE
             a.id = #{id,jdbcType=BIGINT}
     </select>
+    <select id="findByUserId" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List"/>
+        FROM
+            spk_car_group
+        WHERE
+            user_id = #{userId,jdbcType=BIGINT}
+    </select>
 
     <insert id="insert" parameterType="cn.suparking.customer.dao.entity.CarGroup">
         INSERT INTO spk_car_group

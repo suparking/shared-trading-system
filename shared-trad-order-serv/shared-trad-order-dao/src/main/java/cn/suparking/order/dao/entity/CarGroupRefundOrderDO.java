@@ -21,6 +21,8 @@ public class CarGroupRefundOrderDO extends BaseDO {
 
     private static final long serialVersionUID = -8727132105970628203L;
 
+    private Long userId;
+
     private String orderNo;
 
     private String payOrderNo;

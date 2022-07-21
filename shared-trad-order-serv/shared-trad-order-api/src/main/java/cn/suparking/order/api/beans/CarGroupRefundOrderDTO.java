@@ -18,6 +18,8 @@ public class CarGroupRefundOrderDTO implements Serializable {
 
     private String id;
 
+    private Long userId;
+
     private String orderNo;
 
     private String payOrderNo;
