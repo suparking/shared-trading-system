@@ -126,8 +126,8 @@ mybatis:
 
 logging:
   level:
-    cn.suparking.customer: debug
-    cn.suparking.customer.feign.user.UserTemplateService: debug
+    cn.suparking.customer: info
+    cn.suparking.customer.feign.user.UserTemplateService: info
 feign:
   client:
     config:

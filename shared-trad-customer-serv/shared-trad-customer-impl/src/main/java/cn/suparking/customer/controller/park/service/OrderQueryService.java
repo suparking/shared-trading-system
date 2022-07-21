@@ -117,19 +117,19 @@ public class OrderQueryService {
         String code = resultObj.getString("result_code");
         if ("0".equals(code)) {
             LOG.info("订单号: " + orderQueryDTO.getOrderNo() + " 查询支付成功，临停单查询结束...");
-            if (parkingOrderPaySuccess(orderQueryDTO.getOrderNo())) {
-                // 取消定时任务.
-                FUTUREMAP.get(orderQueryDTO.getOrderNo()).cancel(true);
-                FUTUREMAP.remove(orderQueryDTO.getOrderNo());
-            }
+            // 取消定时任务.
+            FUTUREMAP.get(orderQueryDTO.getOrderNo()).cancel(true);
+            FUTUREMAP.remove(orderQueryDTO.getOrderNo());
+
+            parkingOrderPaySuccess(orderQueryDTO.getOrderNo());
+
         } else if ("AB".equals(code)) {
             LOG.info("订单号: " + orderQueryDTO.getOrderNo() + " 查询支付未成功，临停单查询结束...");
             // 删除Redis 中订单
-            if (deleteOrder(orderQueryDTO.getOrderNo())) {
-                // 取消定时任务.
-                FUTUREMAP.get(orderQueryDTO.getOrderNo()).cancel(true);
-                FUTUREMAP.remove(orderQueryDTO.getOrderNo());
-            }
+            deleteOrder(orderQueryDTO.getOrderNo());
+            // 取消定时任务.
+            FUTUREMAP.get(orderQueryDTO.getOrderNo()).cancel(true);
+            FUTUREMAP.remove(orderQueryDTO.getOrderNo());
         } else {
             LOG.info("订单号: " + orderQueryDTO.getOrderNo() + "查询次数: " + count++ + " 临停单查询返回结果处于支付中...");
         }
