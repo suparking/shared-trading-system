@@ -150,6 +150,9 @@
         <dependency>
             <groupId>cn.suparking</groupId>
             <artifactId>SparkPay</artifactId>
+            <version>${spark.pay.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/lib/ShuBoPaymentUtils-jar-with-dependencies.jar</systemPath>
         </dependency>
     </dependencies>
 
@@ -175,6 +178,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <includeSystemScope>true</includeSystemScope>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

@@ -134,11 +134,7 @@
                 <artifactId>seata-spring-boot-starter</artifactId>
                 <version>${spring.seata.version}</version>
             </dependency>
-            <dependency>
-                <groupId>cn.suparking</groupId>
-                <artifactId>SparkPay</artifactId>
-                <version>${spark.pay.version}</version>
-            </dependency>
+
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
