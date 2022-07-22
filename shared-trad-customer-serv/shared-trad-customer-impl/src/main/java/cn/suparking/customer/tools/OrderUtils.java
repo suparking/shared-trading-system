@@ -16,6 +16,24 @@ public class OrderUtils {
     private static final Logger LOG = LoggerFactory.getLogger(OrderUtils.class);
 
     /**
+     * 删除订单redis缓存.
+     * @param orderNo String
+     * @return Boolean
+     */
+    public static Boolean deleteOrder(final String orderNo) {
+        return ReactiveRedisUtils.deleteValue(orderNo).block(Duration.ofMillis(3000));
+    }
+
+    /**
+     * 检查订单是否存在.
+     * @param orderNo String
+     * @return {@link Boolean}
+     */
+    public static String checkOrder(final String orderNo) {
+        return (String) ReactiveRedisUtils.getData(orderNo).block(Duration.ofMillis(3000));
+    }
+
+    /**
      * 将订单信息存入redis.
      * @param orderNo 订单号.
      * @return 执行结果.

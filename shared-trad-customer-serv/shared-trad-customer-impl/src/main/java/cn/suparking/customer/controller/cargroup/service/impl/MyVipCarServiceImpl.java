@@ -1,7 +1,6 @@
 package cn.suparking.customer.controller.cargroup.service.impl;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.NumberUtil;
 import cn.suparking.common.api.beans.SpkCommonResult;
 import cn.suparking.common.api.configuration.SnowflakeConfig;
 import cn.suparking.common.api.exception.SpkCommonException;
@@ -9,8 +8,7 @@ import cn.suparking.common.api.utils.DateUtils;
 import cn.suparking.common.api.utils.HttpRequestUtils;
 import cn.suparking.common.api.utils.RandomCharUtils;
 import cn.suparking.common.api.utils.SpkCommonResultMessage;
-import cn.suparking.customer.api.beans.discount.DiscountUsedDTO;
-import cn.suparking.customer.api.beans.order.OrderQueryDTO;
+import cn.suparking.customer.api.beans.order.OrderDTO;
 import cn.suparking.customer.api.beans.vip.VipOrderQueryDTO;
 import cn.suparking.customer.api.beans.vip.VipPayDTO;
 import cn.suparking.customer.api.constant.ParkConstant;
@@ -18,7 +16,7 @@ import cn.suparking.customer.configuration.properties.MiniProperties;
 import cn.suparking.customer.configuration.properties.SharedProperties;
 import cn.suparking.customer.configuration.properties.SparkProperties;
 import cn.suparking.customer.controller.cargroup.service.MyVipCarService;
-import cn.suparking.customer.controller.park.service.OrderQueryService;
+import cn.suparking.customer.controller.cargroup.service.VipOrderQueryService;
 import cn.suparking.customer.dao.entity.CarGroup;
 import cn.suparking.customer.dao.entity.CarGroupPeriod;
 import cn.suparking.customer.dao.entity.CarGroupStockDO;
@@ -32,11 +30,11 @@ import cn.suparking.customer.spring.SharedTradCustomerInit;
 import cn.suparking.customer.tools.OrderUtils;
 import cn.suparking.customer.tools.ReactiveRedisUtils;
 import cn.suparking.customer.vo.park.MiniPayVO;
-import cn.suparking.data.api.parkfee.DiscountInfo;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.suparking.payutils.controller.ShuBoPaymentUtils;
+import com.suparking.payutils.model.APICloseModel;
 import com.suparking.payutils.model.APIOrderModel;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -60,7 +58,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static cn.suparking.customer.api.constant.ParkConstant.DISCOUNT_DELAY_TIME;
 import static cn.suparking.customer.api.constant.ParkConstant.ORDER_TYPE;
 import static cn.suparking.customer.api.constant.ParkConstant.PAY_TERM_NO;
 import static cn.suparking.customer.api.constant.ParkConstant.PAY_TYPE;
@@ -313,8 +310,8 @@ public class MyVipCarServiceImpl implements MyVipCarService {
             miniPayVO.setRetCode("0");
             miniPayVO.setNeedQuery(false);
             miniPayVO.setType(ORDER_TYPE);
-
             String orderNo = OrderUtils.getOrderNo(vipPayDTO.getProjectNo(), String.valueOf(SnowflakeConfig.snowflakeId()));
+            miniPayVO.setOutTradeNo(orderNo);
 
             // TODO 组织数据创建合约 和 创建 合约订单
             return SpkCommonResult.success(miniPayVO);
@@ -404,17 +401,121 @@ public class MyVipCarServiceImpl implements MyVipCarService {
                             .platForm(miniPayVO.getPlatForm())
                             .vipPayDTO(vipPayDTO)
                             .build();
-                    new OrderQueryService().queryOrder(orderQueryDTO);
+                    new VipOrderQueryService().queryOrder(vipOrderQueryDTO);
                 } else {
-                    return SpkCommonResult.error(SpkCommonResultMessage.CHARGE_CHANGE_DATA_VALID + "保存订单到redis失败,无法开启线程查询.");
+                    return SpkCommonResult.error(SpkCommonResultMessage.CAR_GROUP_DATA_VALID + "保存订单到redis失败,无法开启线程查询.");
                 }
             } else {
-                return SpkCommonResult.error(SpkCommonResultMessage.CHARGE_CHANGE_DATA_VALID + "下单失败");
+                return SpkCommonResult.error(SpkCommonResultMessage.CAR_GROUP_DATA_VALID + "下单失败,错误信息: " + resultCode + "->" + result.getString("result_desc"));
             }
         }
         return SpkCommonResult.success(miniPayVO);
     }
 
+    @Override
+    public SpkCommonResult queryOrder(final String sign, final OrderDTO orderDTO) {
+        // 校验 sign
+        if (!invoke(sign, orderDTO.getOrderNo())) {
+            return SpkCommonResult.error(SpkCommonResultMessage.SIGN_NOT_VALID);
+        }
+        log.info("小程序合约查询订单参数 : " + JSON.toJSONString(orderDTO) + " 请求时间: " + DateUtil.now());
+        JSONObject resultObj = new JSONObject();
+        String orderResultStr = OrderUtils.checkOrder(orderDTO.getOrderNo());
+        if (StringUtils.isNotBlank(orderResultStr)) {
+            if (orderResultStr.equals(orderDTO.getOrderNo())) {
+                resultObj.put("query_code", "AA");
+            } else {
+                JSONObject retObj = JSONObject.parseObject(orderResultStr);
+                String code = retObj.getString("code");
+                if ("0".equals(code)) {
+                    log.info("小程序合约询订单成功,订单号 : " + orderDTO.getOrderNo() + " 时间: " + DateUtil.now());
+                    resultObj.put("query_code", "0");
+                    if (StringUtils.isNotEmpty(orderDTO.getStockKey()) && deleteStockInfo(orderDTO.getStockKey())) {
+                        log.info("库存解除锁定关系成功: " + orderDTO.getStockKey());
+                    }
+                    if (OrderUtils.deleteOrder(orderDTO.getOrderNo())) {
+                        log.info("小程序合约删除订单缓存,成功,订单号 : " + orderDTO.getOrderNo());
+                    }
+                } else {
+                    log.info("小程序合约查询订单失败,订单号 : " + orderDTO.getOrderNo() + " 时间: " + DateUtil.now());
+                    resultObj.put("query_code", code);
+                    resultObj.put("query_msg", retObj.getString("msg"));
+                }
+
+            }
+        } else {
+            log.warn("Redis 中无订单号 : " + orderDTO.getOrderNo() + " 的订单信息");
+            resultObj.put("query_code", "-1");
+            resultObj.put("query_msg", "查询失败");
+        }
+        return SpkCommonResult.success(resultObj);
+    }
+
+    @Override
+    public SpkCommonResult closeOrder(final String sign, final OrderDTO orderDTO) {
+        // 校验 sign
+        if (!invoke(sign, orderDTO.getOrderNo())) {
+            return SpkCommonResult.error(SpkCommonResultMessage.SIGN_NOT_VALID);
+        }
+        log.info("小程序合约关闭订单参数 : " + JSON.toJSONString(orderDTO) + " 请求时间: " + DateUtil.now());
+        APICloseModel closeModel = new APICloseModel();
+        closeModel.setOrderNo(orderDTO.getOrderNo());
+        closeModel.setProjectNo(orderDTO.getProjectNo());
+        String resultStr = ShuBoPaymentUtils.close(closeModel);
+        JSONObject resultObj = JSONObject.parseObject(resultStr);
+        JSONObject retObj = new JSONObject();
+        if (Objects.isNull(resultObj)) {
+            log.info("支付库关单失败,返回为null");
+            retObj.put("code", "10002");
+            retObj.put("msg", "业务失败");
+        }
+        log.info("支付库关单返回结果 : " + resultStr);
+        String status = resultObj.getString("status");
+        if ("200".equals(status)) {
+            JSONObject result = resultObj.getJSONObject("result");
+            if ("0".equals(result.getString("result_code"))) {
+                log.info("支付库关单成功");
+                retObj.put("code", "0");
+            }
+        } else if ("510".equals(status)) {
+            log.info("status = 510, 支付渠道不支持操作");
+            retObj.put("code", "12022");
+            retObj.put("msg", "不支持关单");
+        } else {
+            log.info("支付库关单失败");
+            retObj.put("code", "10002");
+            retObj.put("msg", "业务失败");
+        }
+        OrderUtils.deleteOrder(orderDTO.getOrderNo());
+        if (StringUtils.isNotBlank(orderDTO.getStockKey())) {
+            deleteStockInfo(orderDTO.getStockKey());
+        }
+        return SpkCommonResult.success(retObj);
+    }
+
+    @Override
+    public SpkCommonResult clearStockInfoCache(final String sign, final OrderDTO orderDTO) {
+        // 校验 sign
+        if (!invoke(sign, orderDTO.getStockKey())) {
+            return SpkCommonResult.error(SpkCommonResultMessage.SIGN_NOT_VALID);
+        }
+        log.info("小程序合约办理清除库存缓存参数 : " + JSON.toJSONString(orderDTO) + " 请求时间: " + DateUtil.now());
+        if (deleteStockInfo(orderDTO.getStockKey())) {
+            log.info("小程序合约办理清除缓存成功 : " + orderDTO.getStockKey());
+            return SpkCommonResult.success("清除缓存成功");
+        } else {
+            log.info("小程序优惠券清除缓存失败 : " + orderDTO.getStockKey());
+            return SpkCommonResult.success("清除缓存失败");
+        }
+    }
+
+    /**
+     * delete stockInfo.
+     * @param stockKey the stock
+     */
+    private Boolean deleteStockInfo(final String stockKey) {
+        return ReactiveRedisUtils.deleteValue(stockKey).block(Duration.ofMillis(3000));
+    }
     /**
      * 模糊查找某个Key.
      * @param keyPattern String
@@ -508,13 +609,13 @@ public class MyVipCarServiceImpl implements MyVipCarService {
 
         //开始时间距离凌晨秒值
         long startSecond = 0L;
-        startSecond = startSecond + Integer.valueOf(startTime.split(":")[0]) * 60 * 60;
-        startSecond = startSecond + Integer.valueOf(startTime.split(":")[1]) * 60;
+        startSecond = startSecond + Integer.parseInt(startTime.split(":")[0]) * 60 * 60;
+        startSecond = startSecond + Integer.parseInt(startTime.split(":")[1]) * 60;
 
         //结束时间距离凌晨秒值
         long endSecond = 0L;
-        endSecond = endSecond + Integer.valueOf(endTime.split(":")[0]) * 60 * 60;
-        endSecond = endSecond + Integer.valueOf(endTime.split(":")[1]) * 60;
+        endSecond = endSecond + Integer.parseInt(endTime.split(":")[0]) * 60 * 60;
+        endSecond = endSecond + Integer.parseInt(endTime.split(":")[1]) * 60;
 
         //跨天处理
         if (startSecond > endSecond) {

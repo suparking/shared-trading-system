@@ -79,7 +79,6 @@ public class VipOrderQueryService {
      * 临停单查询.
      */
     private void orderQuery() {
-
         APIOrderQueryModel apiOrderQueryModel = new APIOrderQueryModel();
         apiOrderQueryModel.setProjectNo(vipOrderQueryDTO.getVipPayDTO().getProjectNo());
         apiOrderQueryModel.setOrderNo(vipOrderQueryDTO.getOrderNo());
@@ -111,28 +110,32 @@ public class VipOrderQueryService {
         }
         Object result = genericResponse.getResult();
         if (Objects.isNull(result)) {
-            LOG.error("临停单查询失败,返回结果为null,订单号：" + vipOrderQueryDTO.getOrderNo());
+            LOG.error("合约办理订单查询失败,返回结果为null,订单号：" + vipOrderQueryDTO.getOrderNo());
             return;
         }
         JSONObject resultObj = JSON.parseObject(result.toString());
         String code = resultObj.getString("result_code");
         if ("0".equals(code)) {
-            LOG.info("订单号: " + vipOrderQueryDTO.getOrderNo() + " 查询支付成功，临停单查询结束...");
-            if (parkingOrderPaySuccess(vipOrderQueryDTO.getOrderNo())) {
-                // 取消定时任务.
-                FUTUREMAP.get(vipOrderQueryDTO.getOrderNo()).cancel(true);
-                FUTUREMAP.remove(vipOrderQueryDTO.getOrderNo());
+            LOG.info("订单号: " + vipOrderQueryDTO.getOrderNo() + " 查询支付成功，合约订单查询结束...");
+            // 取消定时任务.
+            if (vipOrderPaySuccess(vipOrderQueryDTO.getOrderNo())) {
+                LOG.info("订单: " + vipOrderQueryDTO.getOrderNo() + " 后续工作处理完成,停止线程...");
             }
+
+            FUTUREMAP.get(vipOrderQueryDTO.getOrderNo()).cancel(true);
+            FUTUREMAP.remove(vipOrderQueryDTO.getOrderNo());
+
         } else if ("AB".equals(code)) {
-            LOG.info("订单号: " + vipOrderQueryDTO.getOrderNo() + " 查询支付未成功，临停单查询结束...");
+            LOG.info("订单号: " + vipOrderQueryDTO.getOrderNo() + " 查询支付未成功，合约订单查询结束...");
             // 删除Redis 中订单
             if (deleteOrder(vipOrderQueryDTO.getOrderNo())) {
-                // 取消定时任务.
-                FUTUREMAP.get(vipOrderQueryDTO.getOrderNo()).cancel(true);
-                FUTUREMAP.remove(vipOrderQueryDTO.getOrderNo());
+                LOG.info("订单: " + vipOrderQueryDTO.getOrderNo() + " 清除订单数据完成,停止线程...");
             }
+            // 取消定时任务.
+            FUTUREMAP.get(vipOrderQueryDTO.getOrderNo()).cancel(true);
+            FUTUREMAP.remove(vipOrderQueryDTO.getOrderNo());
         } else {
-            LOG.info("订单号: " + vipOrderQueryDTO.getOrderNo() + "查询次数: " + count++ + " 临停单查询返回结果处于支付中...");
+            LOG.info("订单号: " + vipOrderQueryDTO.getOrderNo() + "查询次数: " + count++ + " 合约办理订单查询返回结果处于支付中...");
         }
     }
 
@@ -140,14 +143,14 @@ public class VipOrderQueryService {
      * 支付成功存入Redis.
      * @param orderNo String
      */
-    private Boolean parkingOrderPaySuccess(final String orderNo) {
+    private Boolean vipOrderPaySuccess(final String orderNo) {
         JSONObject result = new JSONObject();
         result.put("code", "0");
         result.put("msg", "支付完成");
         if (!saveOrder(orderNo, result.toJSONString())) {
             LOG.info("订单号: " + orderNo + " 订单完成, 存入Redis失败...");
         }
-        // 创建合约订单和合约办理.
+        // 创建合约订单和合约办理,更新库存.
 
         return true;
     }

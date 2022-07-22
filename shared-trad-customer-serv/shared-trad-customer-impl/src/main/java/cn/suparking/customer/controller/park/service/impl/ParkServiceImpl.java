@@ -56,7 +56,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.suparking.payutils.controller.ShuBoPaymentUtils;
 import com.suparking.payutils.model.APICloseModel;
 import com.suparking.payutils.model.APIOrderModel;
-import com.suparking.payutils.model.APIOrderNo;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -500,7 +499,7 @@ public class ParkServiceImpl implements ParkService {
                     return SpkCommonResult.error(SpkCommonResultMessage.CHARGE_CHANGE_DATA_VALID + "保存订单到redis失败,无法开启线程查询.");
                 }
             } else {
-                return SpkCommonResult.error(SpkCommonResultMessage.CHARGE_CHANGE_DATA_VALID + "下单失败");
+                return SpkCommonResult.error(SpkCommonResultMessage.CHARGE_CHANGE_DATA_VALID + "下单失败,错误信息: " + resultCode + "->" + result.getString("result_desc"));
             }
         }
         return SpkCommonResult.success(miniPayVO);
@@ -514,7 +513,7 @@ public class ParkServiceImpl implements ParkService {
         }
         log.info("小程序车位锁查询订单参数 : " + JSON.toJSONString(orderDTO) + " 请求时间: " + DateUtil.now());
         JSONObject resultObj = new JSONObject();
-        String orderResultStr = checkOrder(orderDTO.getOrderNo());
+        String orderResultStr = OrderUtils.checkOrder(orderDTO.getOrderNo());
         if (StringUtils.isNotBlank(orderResultStr)) {
             if (orderResultStr.equals(orderDTO.getOrderNo())) {
                 resultObj.put("query_code", "AA");
@@ -527,13 +526,13 @@ public class ParkServiceImpl implements ParkService {
                     if (StringUtils.isNotEmpty(orderDTO.getDiscountNo()) && deleteDiscountInfo(orderDTO.getDiscountNo())) {
                         log.info("优惠券解除绑定成功: " + orderDTO.getDiscountNo());
                     }
+                    if (OrderUtils.deleteOrder(orderDTO.getOrderNo())) {
+                        log.info("小程序删除订单缓存,成功,订单号 : " + orderDTO.getOrderNo());
+                    }
                 } else {
                     log.info("小程序车位锁查询订单失败,订单号 : " + orderDTO.getOrderNo() + " 时间: " + DateUtil.now());
                     resultObj.put("query_code", code);
                     resultObj.put("query_msg", retObj.getString("msg"));
-                }
-                if (deleteOrder(orderDTO.getOrderNo())) {
-                    log.info("小程序删除订单缓存,成功,订单号 : " + orderDTO.getOrderNo());
                 }
             }
         } else {
@@ -569,14 +568,9 @@ public class ParkServiceImpl implements ParkService {
             if ("0".equals(result.getString("result_code"))) {
                 log.info("支付库关单成功");
                 retObj.put("code", "0");
-                deleteOrder(orderDTO.getOrderNo());
-                if (StringUtils.isNotBlank(orderDTO.getDiscountNo())) {
-                    deleteDiscountInfo(orderDTO.getDiscountNo());
-                }
             }
         } else if ("510".equals(status)) {
             log.info("status = 510, 支付渠道不支持操作");
-            deleteOrder(orderDTO.getOrderNo());
             retObj.put("code", "12022");
             retObj.put("msg", "不支持关单");
         } else {
@@ -584,6 +578,7 @@ public class ParkServiceImpl implements ParkService {
             retObj.put("code", "10002");
             retObj.put("msg", "业务失败");
         }
+        OrderUtils.deleteOrder(orderDTO.getOrderNo());
         if (StringUtils.isNotBlank(orderDTO.getDiscountNo())) {
             deleteDiscountInfo(orderDTO.getDiscountNo());
         }
@@ -808,23 +803,7 @@ public class ParkServiceImpl implements ParkService {
 
 
 
-    /**
-     * 检查订单是否存在.
-     * @param orderNo String
-     * @return {@link Boolean}
-     */
-    private String checkOrder(final String orderNo) {
-        return (String) ReactiveRedisUtils.getData(orderNo).block(Duration.ofMillis(3000));
-    }
 
-    /**
-     * 删除订单redis缓存.
-     * @param orderNo String
-     * @return Boolean
-     */
-    private Boolean deleteOrder(final String orderNo) {
-        return ReactiveRedisUtils.deleteValue(orderNo).block(Duration.ofMillis(3000));
-    }
 
     /**
      * save discountInfo.
@@ -987,6 +966,4 @@ public class ParkServiceImpl implements ParkService {
         }
         return false;
     }
-
-
 }
