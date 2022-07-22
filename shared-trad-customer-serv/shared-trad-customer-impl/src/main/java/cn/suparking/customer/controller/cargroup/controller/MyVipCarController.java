@@ -1,10 +1,13 @@
 package cn.suparking.customer.controller.cargroup.controller;
 
 import cn.suparking.common.api.beans.SpkCommonResult;
+import cn.suparking.customer.api.beans.ParkPayDTO;
+import cn.suparking.customer.api.beans.vip.VipPayDTO;
 import cn.suparking.customer.controller.cargroup.service.MyVipCarService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,5 +66,16 @@ public class MyVipCarController {
     @GetMapping("protocolVipCarList")
     public SpkCommonResult protocolVipCarList(@RequestHeader("sign") final String sign, @RequestParam final String projectNo) {
         return myVipCarService.protocolVipCarList(sign, projectNo);
+    }
+
+    /**
+     * 小程序办理合约下单接口.
+     * @param sign C 端 使用 库存ID 签名制作.
+     * @param vipPayDTO {@link VipPayDTO}
+     * @return {@link SpkCommonResult}
+     */
+    @PostMapping("carGroupToPay")
+    public SpkCommonResult carGroupToPay(@RequestHeader("sign") final String sign, @RequestBody final VipPayDTO vipPayDTO) {
+        return myVipCarService.carGroupToPay(sign, vipPayDTO);
     }
 }

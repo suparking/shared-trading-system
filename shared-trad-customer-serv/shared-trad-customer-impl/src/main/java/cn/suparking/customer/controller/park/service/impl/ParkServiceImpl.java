@@ -30,6 +30,7 @@ import cn.suparking.customer.dao.vo.user.ParkFeeQueryVO;
 import cn.suparking.customer.feign.data.DataTemplateService;
 import cn.suparking.customer.feign.user.UserTemplateService;
 import cn.suparking.customer.spring.SharedTradCustomerInit;
+import cn.suparking.customer.tools.OrderUtils;
 import cn.suparking.customer.tools.ReactiveRedisUtils;
 import cn.suparking.customer.vo.park.DeviceVO;
 import cn.suparking.customer.vo.park.MiniPayVO;
@@ -372,7 +373,7 @@ public class ParkServiceImpl implements ParkService {
                 }
             }
 
-            String orderNo = getOrderNo(parking.getProjectNo(), parkPayDTO.getTmpOrderNo());
+            String orderNo = OrderUtils.getOrderNo(parking.getProjectNo(), parkPayDTO.getTmpOrderNo());
             // 将订单状态改为已完成
             parkingOrder.setStatus("COMPLETE");
             // 组织数据保存订单
@@ -482,7 +483,7 @@ public class ParkServiceImpl implements ParkService {
                 miniPayVO.setPayInfo(result.getString("payInfo"));
                 miniPayVO.setDiscountDelayTime(String.valueOf(DISCOUNT_DELAY_TIME));
 
-                if (saveOrder(miniPayVO.getOutTradeNo())) {
+                if (OrderUtils.saveOrder(miniPayVO.getOutTradeNo())) {
                     parkingOrder.setStatus("RUNNING");
                     OrderQueryDTO orderQueryDTO = OrderQueryDTO.builder()
                             .orderNo(miniPayVO.getOutTradeNo())
@@ -582,6 +583,9 @@ public class ParkServiceImpl implements ParkService {
             log.info("支付库关单失败");
             retObj.put("code", "10002");
             retObj.put("msg", "业务失败");
+        }
+        if (StringUtils.isNotBlank(orderDTO.getDiscountNo())) {
+            deleteDiscountInfo(orderDTO.getDiscountNo());
         }
         return SpkCommonResult.success(retObj);
     }
@@ -802,14 +806,7 @@ public class ParkServiceImpl implements ParkService {
         );
     }
 
-    /**
-     * 将订单信息存入redis.
-     * @param orderNo 订单号.
-     * @return 执行结果.
-     */
-    private Boolean saveOrder(final String orderNo) {
-        return ReactiveRedisUtils.putValue(orderNo, orderNo, 3 * 60).block(Duration.ofMillis(3000));
-    }
+
 
     /**
      * 检查订单是否存在.
@@ -991,32 +988,5 @@ public class ParkServiceImpl implements ParkService {
         return false;
     }
 
-    /**
-     * 支付库生成订单.
-     * @param projectNo {@link String}
-     * @param tmpOrderNo {@link String}
-     * @return {@link String}
-     */
-    private String getOrderNo(final String projectNo, final String tmpOrderNo) {
-        APIOrderNo apiOrderNo = new APIOrderNo();
-        apiOrderNo.setProjectNo(projectNo);
-        apiOrderNo.setTermInfo(PAY_TERM_NO);
-        apiOrderNo.setBusinessType("0".charAt(0));
-        apiOrderNo.setPayChannel("0".charAt(0));
-        apiOrderNo.setPayType("0".charAt(0));
-        String orderNo = tmpOrderNo;
-        try {
-            String result = ShuBoPaymentUtils.getOrderNo(apiOrderNo);
-            JSONObject jsonObj = JSON.parseObject(result);
-            if (jsonObj.getInteger("status") == 200) {
-                JSONObject resultObj = JSON.parseObject(jsonObj.getString("result"));
-                if (resultObj.getString("result_code").equals("0")) {
-                    orderNo = resultObj.getString("orderNo");
-                }
-            }
-        } catch (Exception e) {
-            log.error("支付库生成订单号异常: " + e.getMessage());
-        }
-        return orderNo;
-    }
+
 }

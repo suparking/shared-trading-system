@@ -1,6 +1,7 @@
 package cn.suparking.customer.controller.cargroup.service;
 
 import cn.suparking.common.api.beans.SpkCommonResult;
+import cn.suparking.customer.api.beans.vip.VipPayDTO;
 
 public interface MyVipCarService {
 
@@ -36,4 +37,12 @@ public interface MyVipCarService {
      * @date 2022/7/20 14:53:11
      */
     SpkCommonResult protocolVipCarList(String sign, String projectNo);
+
+    /**
+     * 小程序办理合约下单接口.
+     * @param sign C 端 使用 库存ID 签名制作.
+     * @param vipPayDTO {@link VipPayDTO}
+     * @return {@link SpkCommonResult}
+     */
+    SpkCommonResult carGroupToPay(String sign, VipPayDTO vipPayDTO);
 }
