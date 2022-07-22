@@ -63,6 +63,7 @@ public class MyVipCarServiceImpl implements MyVipCarService {
     /**
      * 获取当前用户所有场库所办的合约信息.
      *
+     * @param sign   秘钥
      * @param userId 用户id
      * @return {@link SpkCommonResult}
      * @author ZDD
